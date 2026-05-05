@@ -158,6 +158,21 @@ ipcMain.handle('increment-att', async () => {
     }
 });
 
+// ── IPC: Save quotation record to Firebase ──
+ipcMain.handle('save-quotation-record', async (event, record) => {
+    if (!db) return { success: false, reason: 'no-firebase' };
+    try {
+        // Use attNo as the key so each quotation is easy to find
+        const key = record.attNo.replace(/[.#$/[\]]/g, '_');
+        await db.ref('quotations/' + key).set(record);
+        console.log('Quotation saved to Firebase:', key);
+        return { success: true };
+    } catch (err) {
+        console.error('save-quotation-record error:', err.message);
+        return { success: false, reason: err.message };
+    }
+});
+
 // ── IPC: Handle PDF save from renderer ──
 ipcMain.handle('save-pdf', async (event, customerName, attCode) => {
     const namePart = customerName ? customerName.trim() : 'Quotation';

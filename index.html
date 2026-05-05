@@ -882,6 +882,20 @@
             setTimeout(() => { btn.innerText = t.dlBtn; btn.style.opacity='1'; btn.disabled=false; }, 2500);
             // ── Firebase: increment counter so next quotation gets the next number ──
             ipcRenderer.invoke('increment-att').catch(() => {});
+
+            // ── Firebase: save quotation record ──
+            try {
+                const qRecord = {
+                    customerName : document.getElementById('in_cust').value.trim(),
+                    mobile       : '05' + (document.getElementById('in_mobile_suffix').value.trim()),
+                    attNo        : attFull,
+                    date         : document.getElementById('out_date') ? document.getElementById('out_date').innerText : new Date().toLocaleDateString(),
+                    from         : document.getElementById('in_from').value,
+                    totalVAT     : document.getElementById('out_grand').innerText,
+                    savedAt      : new Date().toISOString()
+                };
+                ipcRenderer.invoke('save-quotation-record', qRecord).catch(() => {});
+            } catch(e) { /* silent fail — never block the user */ }
         } else {
             btn.innerText = t.dlBtn;
             btn.style.opacity = '1';
