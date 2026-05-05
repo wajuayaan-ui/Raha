@@ -1,0 +1,5 @@
+# NEVER upload these to GitHub
+firebase-config.json
+dist/
+node_modules/
+.env

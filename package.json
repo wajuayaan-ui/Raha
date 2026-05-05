@@ -1,0 +1,52 @@
+{
+  "name": "raha-quotation",
+  "version": "1.0.0",
+  "description": "Raha Co. Quotation System",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --x64"
+  },
+  "build": {
+    "appId": "com.rahaco.quotation",
+    "productName": "Raha Quotation",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "index.html",
+      "firebase-config.json"
+    ],
+    "extraResources": [
+      {
+        "from": "Logo",
+        "to": "Logo"
+      }
+    ],
+    
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "Logo/logo.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "deleteAppDataOnUninstall": false
+    }
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "electron-updater": "^6.1.7"
+  },
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3"
+  }
+}
