@@ -1,7 +1,8 @@
 {
   "name": "raha-quotation",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Raha Co. Quotation System",
+  "author": "Wajahat Ali",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -9,6 +10,7 @@
   },
   "build": {
     "appId": "com.rahaco.quotation",
+    "copyright": "Wajahat Ali",
     "productName": "Raha Quotation",
     "directories": {
       "output": "dist"
