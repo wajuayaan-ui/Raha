@@ -116,34 +116,68 @@
         .dn-mode #totals-wrap { display: none !important; }
 
 
-        /* ── AUTO-UPDATE BANNER ── */
-        #update-banner {
+        /* ── AUTO-UPDATE POPUP ── */
+        #update-overlay {
             display: none;
             position: fixed;
-            bottom: 0; left: 0; right: 0;
-            z-index: 9999;
-            background: #102a43;
-            color: white;
-            padding: 12px 20px;
-            font-size: 13px;
-            font-weight: 600;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 9998;
             align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            box-shadow: 0 -3px 10px rgba(0,0,0,0.3);
+            justify-content: center;
         }
-        #update-banner.visible { display: flex; }
-        #update-banner.downloading { background: #1a3a5c; }
-        #update-banner.ready      { background: #1a5c2a; }
+        #update-overlay.visible { display: flex; }
+        #update-popup {
+            background: white;
+            border-radius: 14px;
+            padding: 36px 40px 30px;
+            width: 380px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            position: relative;
+        }
+        #update-popup .up-icon { font-size: 48px; margin-bottom: 12px; }
+        #update-popup .up-title {
+            font-size: 18px; font-weight: 800;
+            color: #102a43; margin-bottom: 8px;
+        }
+        #update-popup .up-msg {
+            font-size: 13px; color: #555;
+            margin-bottom: 24px; line-height: 1.6;
+        }
+        #update-popup .up-progress {
+            background: #e8f0fe; border-radius: 20px;
+            height: 8px; margin-bottom: 20px; overflow: hidden;
+            display: none;
+        }
+        #update-popup .up-progress-bar {
+            background: linear-gradient(90deg, #2563eb, #38bdf8);
+            height: 100%; width: 0%;
+            transition: width 0.4s ease;
+            border-radius: 20px;
+        }
         #update-install-btn {
-            background: #22c55e; color: white; border: none;
-            padding: 7px 18px; border-radius: 5px; cursor: pointer;
-            font-weight: bold; font-size: 13px; white-space: nowrap;
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+            color: white; border: none;
+            padding: 13px 0; border-radius: 8px;
+            cursor: pointer; font-weight: 800;
+            font-size: 15px; width: 100%;
+            box-shadow: 0 4px 15px rgba(34,197,94,0.4);
+            transition: opacity 0.2s;
         }
-        #update-install-btn:hover { background: #16a34a; }
+        #update-install-btn:hover { opacity: 0.88; }
         #update-dismiss-btn {
+            position: absolute; top: 14px; right: 16px;
             background: transparent; color: #aaa; border: none;
-            cursor: pointer; font-size: 18px; padding: 0 4px; line-height: 1;
+            cursor: pointer; font-size: 20px; line-height: 1;
+            transition: color 0.2s;
+        }
+        #update-dismiss-btn:hover { color: #333; }
+        #update-later-btn {
+            background: transparent; border: none;
+            color: #888; font-size: 12px; cursor: pointer;
+            margin-top: 12px; text-decoration: underline;
+            display: block; width: 100%;
         }
         @media print {
             #controls { display: none !important; }
@@ -205,12 +239,18 @@
     <button class="save-pdf-btn" id="dl-btn" onclick="downloadPDF()">DOWNLOAD QUOTATION (PDF)</button>
 </div>
 
-<!-- AUTO-UPDATE BANNER -->
-<div id="update-banner">
-    <span id="update-banner-msg">🔄 Downloading update...</span>
-    <div style="display:flex;align-items:center;gap:8px;">
-        <button id="update-install-btn" style="display:none;" onclick="installUpdate()">Restart &amp; Install</button>
+<!-- AUTO-UPDATE POPUP -->
+<div id="update-overlay">
+    <div id="update-popup">
         <button id="update-dismiss-btn" onclick="dismissUpdateBanner()" title="Dismiss">✕</button>
+        <div class="up-icon">🚀</div>
+        <div class="up-title" id="update-popup-title">Update Available!</div>
+        <div class="up-msg" id="update-banner-msg">Downloading the latest version in the background...</div>
+        <div class="up-progress" id="update-progress-bar-wrap">
+            <div class="up-progress-bar" id="update-progress-bar"></div>
+        </div>
+        <button id="update-install-btn" style="display:none;" onclick="installUpdate()">🔄 Restart &amp; Install Now</button>
+        <button id="update-later-btn" style="display:none;" onclick="dismissUpdateBanner()">Remind me later</button>
     </div>
 </div>
 <div id="resize-handle"></div>
@@ -897,29 +937,37 @@
     })();
 
 
-    // ── AUTO-UPDATE BANNER ──
+    // ── AUTO-UPDATE POPUP ──
     (function() {
         const { ipcRenderer } = require('electron');
 
         ipcRenderer.on('update-status', (event, info) => {
-            const banner  = document.getElementById('update-banner');
-            const msg     = document.getElementById('update-banner-msg');
-            const installBtn = document.getElementById('update-install-btn');
-
-            banner.classList.remove('downloading', 'ready');
+            const overlay     = document.getElementById('update-overlay');
+            const title       = document.getElementById('update-popup-title');
+            const msg         = document.getElementById('update-banner-msg');
+            const installBtn  = document.getElementById('update-install-btn');
+            const laterBtn    = document.getElementById('update-later-btn');
+            const progressWrap= document.getElementById('update-progress-bar-wrap');
+            const progressBar = document.getElementById('update-progress-bar');
 
             if (info.state === 'downloading') {
-                const pct = info.percent != null ? ` (${info.percent}%)` : '';
-                msg.innerText = `🔄 Downloading update v${info.version || ''}${pct}...`;
-                banner.classList.add('downloading');
+                title.innerText = '🔄 Downloading Update...';
+                const pct = info.percent != null ? info.percent : 0;
+                msg.innerText = `Version ${info.version || 'new'} is downloading — ${pct}% complete. Please wait.`;
+                progressWrap.style.display = 'block';
+                progressBar.style.width = pct + '%';
                 installBtn.style.display = 'none';
+                laterBtn.style.display = 'none';
             } else if (info.state === 'ready') {
-                msg.innerText = `✅ Update v${info.version} ready — restart to apply`;
-                banner.classList.add('ready');
-                installBtn.style.display = 'inline-block';
+                title.innerText = '✅ Update Ready!';
+                msg.innerText = `Version ${info.version} has been downloaded.
+Click below to restart and apply the update.`;
+                progressWrap.style.display = 'none';
+                installBtn.style.display = 'block';
+                laterBtn.style.display = 'block';
             }
 
-            banner.classList.add('visible');
+            overlay.classList.add('visible');
         });
 
         window.installUpdate = function() {
@@ -927,7 +975,7 @@
         };
 
         window.dismissUpdateBanner = function() {
-            document.getElementById('update-banner').classList.remove('visible');
+            document.getElementById('update-overlay').classList.remove('visible');
         };
     })();
 
