@@ -18,6 +18,7 @@
     "files": [
       "main.js",
       "index.html",
+      "contract.html",
       "firebase-config.json"
     ],
     "extraResources": [
