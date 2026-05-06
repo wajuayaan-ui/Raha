@@ -73,6 +73,7 @@ function initAutoUpdater() {
 
 let mainWindow;
 let contractWindow = null;
+let quotationWindow = null;
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -141,7 +142,7 @@ ipcMain.handle('save-quotation-record', async (event, record) => {
 // Save Quotation PDF
 ipcMain.handle('save-pdf', async (event, baseName) => {
     const defaultName = baseName ? `${baseName}.pdf` : 'Quotation.pdf';
-    const { filePath, canceled } = await dialog.showSaveDialog(mainWindow, {
+    const { filePath, canceled } = await dialog.showSaveDialog(quotationWindow || mainWindow, {
         title: 'Save Quotation As',
         defaultPath: defaultName,
         filters: [{ name: 'PDF Files', extensions: ['pdf'] }]
@@ -183,6 +184,26 @@ ipcMain.handle('open-contract', async () => {
     contractWindow.loadFile('contract.html');
     contractWindow.setMenuBarVisibility(false);
     contractWindow.on('closed', () => { contractWindow = null; });
+});
+
+// ── Open Quotation Window ──
+ipcMain.handle('open-quotation', async () => {
+    if (quotationWindow) { quotationWindow.focus(); return; }
+    quotationWindow = new BrowserWindow({
+        width: 1400,
+        height: 900,
+        minWidth: 1100,
+        minHeight: 700,
+        title: 'Raha Co. — Quotation System',
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            webSecurity: false
+        }
+    });
+    quotationWindow.loadFile('quotation.html');
+    quotationWindow.setMenuBarVisibility(false);
+    quotationWindow.on('closed', () => { quotationWindow = null; });
 });
 
 // Get current contract S/N from Firebase
