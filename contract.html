@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عقد تصنيع - راها التجارية</title>
+    <style>
+        :root { --raha-blue: #102a43; }
+
+        body {
+            font-family: 'Tahoma', 'Arial', sans-serif;
+            margin: 0; background: #f0f4f8;
+            color: #000; direction: rtl;
+        }
+
+        /* ── SIDEBAR ── */
+        #controls {
+            width: 320px; position: fixed;
+            right: 0; top: 0; bottom: 0;
+            background: #fff; padding: 20px;
+            border-left: 1px solid #d9e2ec;
+            overflow-y: auto; z-index: 1000;
+        }
+        .ctrl-title { margin: 0 0 15px 0; font-size: 17px; font-weight: 800; color: var(--raha-blue); }
+        .ig { margin-bottom: 13px; }
+        .ig label { display: block; font-size: 11px; font-weight: 700; margin-bottom: 4px; color: #486581; }
+        .ig input {
+            width: 100%; padding: 9px; border: 1px solid #bcccdc;
+            border-radius: 6px; box-sizing: border-box;
+            font-family: 'Tahoma', Arial, sans-serif;
+            direction: rtl; text-align: right; font-size: 13px;
+        }
+        .pfx-wrap { display: flex; align-items: stretch; }
+        .pfx-tag {
+            padding: 9px 10px; background: #eee;
+            border: 1px solid #bcccdc; border-left: none;
+            border-radius: 6px 0 0 6px;
+            font-size: 13px; font-weight: 700; color: #102a43;
+            display: flex; align-items: center; white-space: nowrap;
+        }
+        .pfx-input { border-radius: 0 6px 6px 0 !important; flex: 1; min-width: 0; }
+
+        .field-error .ig-inp, .field-error .pfx-input { border-color: #d32f2f !important; background: #fff5f5 !important; }
+        .fwarn { font-size: 10px; color: #d32f2f; font-weight: 700; margin-top: 3px; display: none; }
+        .field-error .fwarn { display: block; }
+
+        .dl-btn {
+            background: #22c55e; color: white; padding: 14px;
+            border: none; border-radius: 6px; cursor: pointer;
+            width: 100%; font-size: 15px; margin-top: 15px;
+            font-weight: bold; font-family: 'Tahoma', Arial, sans-serif;
+        }
+
+        /* ── PAGE WRAP ── */
+        #page-wrap {
+            margin-right: 340px; padding: 30px;
+            display: flex; flex-direction: column;
+            align-items: center; gap: 20px;
+        }
+
+        /* ── CONTRACT PAGE (A4) ── */
+        .cp {
+            width: 210mm; background: white;
+            padding: 12mm 15mm;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+            box-sizing: border-box;
+            font-size: 13px; line-height: 1.85;
+            display: flex; flex-direction: column;
+        }
+
+        /* ── PAGE 1 HEADER ── */
+        .ph1 {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: start;
+            margin-bottom: 6px;
+            direction: ltr;
+        }
+        .ph1-meta { text-align: left; }
+        .ph1-meta table { border-collapse: collapse; }
+        .ph1-meta td {
+            border: 1px solid #999;
+            padding: 4px 12px;
+            font-size: 12px; font-weight: 700;
+        }
+        .ph1-logo { text-align: center; }
+        .ph1-logo img { max-height: 75px; }
+        .ph1-logo .co-name { font-size: 12px; font-weight: 800; color: var(--raha-blue); margin-top: 3px; }
+        .ph1-empty {}
+
+        /* ── PAGE 2 HEADER ── */
+        .ph2 { text-align: center; margin-bottom: 0; direction: ltr; }
+        .ph2 img { max-height: 75px; }
+        .ph2 .co-name { font-size: 12px; font-weight: 800; color: var(--raha-blue); margin-top: 3px; direction: rtl; }
+
+        /* ── CONTRACT TITLE ── */
+        .ct {
+            display: flex; align-items: center;
+            margin: 10px 0 14px 0;
+        }
+        .ct-line { flex: 1; border-bottom: 2px solid var(--raha-blue); }
+        .ct-text {
+            padding: 0 16px;
+            font-size: 16px; font-weight: 800;
+            color: var(--raha-blue);
+        }
+
+        /* ── PAGE 2 TOP LINE ── */
+        .p2-topline { border-bottom: 2px solid var(--raha-blue); margin: 8px 0 16px 0; }
+
+        /* ── CONTRACT CONTENT ── */
+        .cc { flex: 1; text-align: right; direction: rtl; }
+        .cc p { margin: 4px 0; }
+
+        .party-block { margin-bottom: 12px; }
+        .party-line { font-size: 14px; margin-bottom: 5px; }
+        .party-one { font-style: italic; font-weight: 800; }
+
+        .uif { font-weight: 800; color: #000; }
+
+        .agree-intro {
+            text-align: center; font-size: 13px;
+            margin: 10px 0 13px 0;
+        }
+
+        .art-title {
+            font-weight: 800; text-decoration: underline;
+            margin: 14px 0 5px 0; font-size: 13px;
+            display: block;
+        }
+
+        .bl { margin: 3px 0; font-size: 13px; }
+        .bl::before { content: '• '; }
+        .dl { margin: 3px 0; font-size: 13px; }
+        .dl::before { content: '- '; }
+
+        .amount-line {
+            font-size: 14px; font-weight: 800;
+            margin: 8px 0; text-align: center;
+        }
+
+        /* ── SIGNATURE ── */
+        .sig-section { margin-top: 22px; }
+        .sig-title {
+            font-size: 14px; font-weight: 800;
+            text-align: center; margin-bottom: 16px;
+        }
+        .sig-table { width: 100%; border-collapse: collapse; }
+        .sig-table td {
+            width: 50%; vertical-align: top;
+            padding: 0 8px; font-size: 13px;
+            line-height: 2.1;
+        }
+        .sig-party { font-weight: 800; margin-bottom: 4px; }
+        .sig-sep { border-right: 1px solid #bbb; }
+
+        /* ── FOOTER ── */
+        .cf {
+            display: flex; justify-content: space-between;
+            align-items: center; font-size: 10px; color: #888;
+            margin-top: auto; padding-top: 8px;
+            border-top: 1px solid #eee;
+        }
+
+        @media print {
+            #controls { display: none !important; }
+            #page-wrap { margin: 0 !important; padding: 0 !important; gap: 0 !important; }
+            .cp {
+                box-shadow: none !important;
+                page-break-after: always;
+                padding: 10mm 12mm !important;
+                min-height: 0 !important;
+            }
+            .cp:last-child { page-break-after: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<div id="controls">
+    <p class="ctrl-title">📋 عقد تصنيع</p>
+
+    <div class="ig" id="grp-sn">
+        <label>الرقم التسلسلي S/N</label>
+        <div class="pfx-wrap">
+            <input type="text" id="in_sn" class="pfx-input" placeholder="001" maxlength="3"
+                   readonly style="background:#f5f5f5;color:#333;cursor:not-allowed;">
+            <span class="pfx-tag">R1S</span>
+        </div>
+        <div class="fwarn">⚠ الرقم التسلسلي مطلوب</div>
+    </div>
+
+    <div class="ig">
+        <label>التاريخ</label>
+        <input type="text" id="in_date" readonly style="background:#eee;">
+    </div>
+
+    <div class="ig" id="grp-client">
+        <label>اسم العميل</label>
+        <input type="text" class="ig-inp" id="in_client" 
+               oninput="clearE('grp-client');sync()">
+        <div class="fwarn">⚠ اسم العميل مطلوب</div>
+    </div>
+
+    <div class="ig" id="grp-phone">
+        <label>رقم الهاتف</label>
+        <div class="pfx-wrap">
+            <input type="text" id="in_phone" class="pfx-input" placeholder="XXXXXXXX"
+                   maxlength="8" inputmode="numeric"
+                   oninput="onDigits(this,8);clearE('grp-phone');sync()">
+            <span class="pfx-tag">05</span>
+        </div>
+        <div class="fwarn">⚠ رقم هاتف صحيح مطلوب (10 أرقام)</div>
+    </div>
+
+    <div class="ig" id="grp-address">
+        <label>العنوان الوطني للعميل</label>
+        <input type="text" class="ig-inp" id="in_address" 
+               oninput="clearE('grp-address');sync()">
+        <div class="fwarn">⚠ العنوان مطلوب</div>
+    </div>
+
+    <div class="ig" id="grp-amount">
+        <label>قيمة العقد – رقم</label>
+        <input type="text" class="ig-inp" id="in_amount" 
+               oninput="clearE('grp-amount');sync()">
+        <div class="fwarn">⚠ قيمة العقد مطلوبة</div>
+    </div>
+
+    <div class="ig" id="grp-atext">
+        <label>قيمة العقد – تفصيل</label>
+        <input type="text" class="ig-inp" id="in_atext"
+                             oninput="clearE('grp-atext');sync()">
+        <div class="fwarn">⚠ التفصيل مطلوب</div>
+    </div>
+
+    <div class="ig" id="grp-days">
+        <label>مدة التنفيذ (يوم)</label>
+        <div class="pfx-wrap">
+            <input type="text" id="in_days" class="pfx-input" placeholder="00"
+                   oninput="onDigits(this,3);sync()">
+            <span class="pfx-tag">يوم</span>
+        </div>
+    </div>
+
+    <button class="dl-btn" id="dl-btn" onclick="downloadPDF()">💾 حفظ العقد (PDF)</button>
+</div>
+
+<!-- ═══════════ CONTRACT PAGES ═══════════ -->
+<div id="page-wrap">
+
+<!-- ───────── PAGE 1 ───────── -->
+<div class="cp" id="page1">
+
+    <!-- Header: meta | logo | empty -->
+    <div class="ph1">
+        <div class="ph1-meta">
+            <table>
+                <tr>
+                    <td>:Date</td>
+                    <td id="out_date_p1" style="min-width:80px;">__-__-____</td>
+                </tr>
+                <tr>
+                    <td>:S/N</td>
+                    <td id="out_sn_p1">R1S____</td>
+                </tr>
+            </table>
+        </div>
+        <div class="ph1-logo">
+            <img id="logo1" src="" style="display:none;" alt="">
+            <div id="lf1" style="font-size:30px;color:var(--raha-blue);">◫</div>
+            <div class="co-name">شركة راها التجارية</div>
+        </div>
+        <div class="ph1-empty"></div>
+    </div>
+
+    <!-- Title -->
+    <div class="ct">
+        <div class="ct-line"></div>
+        <div class="ct-text">عقـد تصنيع</div>
+        <div class="ct-line"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="cc">
+
+        <div class="party-block">
+            <div class="party-line">الطرف الأول : <span class="party-one">شركة راها التجارية</span></div>
+            <div class="party-line">الطرف الثاني : <span class="uif" id="out_client">___________</span></div>
+            <div class="party-line">رقم الهاتف / <span class="uif" id="out_phone">___________</span></div>
+            <div class="party-line">العنوان الوطني للعميل / <span class="uif" id="out_address">___________</span></div>
+        </div>
+
+        <div class="agree-intro">تم الاتفاق بين الطرفين على ما يلي:</div>
+
+        <span class="art-title">البند الأول: نطاق العمل</span>
+        <p class="bl" style="list-style:none;padding:0;">تلتزم الشركة بتصنيع وتوريد وتركيب المنتجات المتفق عليها حسب الرسومات والمواصفات المعتمدة من العميل قبل بدء التصنيع .</p>
+        <p class="bl" style="list-style:none;padding:0;font-weight:800;">ويعتبر اعتماد العميل للتصميم والمقاسات إقراراً نهائياً لا رجعة فيه.</p>
+
+        <span class="art-title">البند الثاني: مدة التنفيذ</span>
+        <p>مدة التفنيذ <strong><span id="out_days">__</span> يوم</strong> من تاريخ سداد الدفعة الثانية .</p>
+        <p>ولا تتحمل الشركة مسؤولية أي تأخير ناتج عن:</p>
+        <p class="bl">تغيير المقاسات أو التصميم،</p>
+        <p class="bl">عدم جاهزية موقع التركيب،</p>
+        <p class="bl">تأخر العميل في الرد،</p>
+        <p class="bl">ظروف خارجة عن الإرادة.</p>
+
+        <span class="art-title">البند الثالث: قيمة العقد وطريقة الدفع</span>
+        <p class="amount-line">قيمة العقد: ( <span class="uif" id="out_amount">#__________</span> <span class="uif" id="out_atext">__________</span> )</p>
+        <p class="dl">لا يتم التوريد ولا الجدولة ولا التركيب إلا بعد سداد كامل قيمة العقد بنسبة .%.100</p>
+        <p class="dl">قيمة العقد قابله للتعديل في حال الإضافة والتعديل على التصميم قبل التصنيع.</p>
+
+        <span class="art-title">البند الرابع: الضمان</span>
+        <p>.1 تضمن الشركة جودة المواد لمدة ) 10 سنوات ( من تاريخ الاستلام.</p>
+        <p>.2 الضمان لا يشمل بشكل صريح :</p>
+        <p class="bl">الإضاءة بكافة أنواعها LED أو غيرها .</p>
+        <p class="bl">التلف الناتج عن المياه المباشرة .</p>
+        <p class="bl">سوء الاستخدام .</p>
+        <p class="bl">العبث أو الإصلاح من طرف ثالث .</p>
+        <p class="bl">الكسر للزجاج والخدوش بعد استلام العميل للعمل.</p>
+
+    </div>
+
+    <div class="cf">
+        <span>www.rahaksa.com</span>
+        <span>Imam Saud Bin Abdulaziz Bin Mohammed Rd, An Nuzhah, Riyadh 18497</span>
+    </div>
+</div>
+
+<!-- ───────── PAGE 2 ───────── -->
+<div class="cp" id="page2">
+
+    <div class="ph2">
+        <img id="logo2" src="" style="display:none;" alt="">
+        <div id="lf2" style="font-size:30px;color:var(--raha-blue);">◫</div>
+        <div class="co-name">شركة راها التجارية</div>
+    </div>
+    <div class="p2-topline"></div>
+
+    <div class="cc">
+
+        <p>لا تتحمل الشركة أي مسؤولية عن أعمال الكهرباء، السباكة، أو أعمال المقاولين الآخرين.</p>
+
+        <span class="art-title">البند الخامس: التركيب</span>
+        <p class="bl">يتم التركيب فقط بعد سداد كامل قيمة العقد بنسبة %100 دون أي استثناء.</p>
+        <p class="bl">يجب أن يكون الموقع جاهزاً للتركيب تماماً.</p>
+        <p class="bl">في حال عدم جاهزية الموقع عند وصول الفريق، يتم احتساب زيارة إضافية برسوم .</p>
+        <p class="bl">أي تعديل يطلبه العميل بعد بدء العمل يُعتبر عملاً إضافياً يتم احتسابه بقيمة جديدة.</p>
+
+        <span class="art-title">البند السادس: الاستلام</span>
+        <p class="bl">يُعد توقيع العميل على الاستلام النهائي إقراراً منه بأن العمل سليم ومطابق للمتفق عليه .</p>
+        <p class="bl">في حال عدم تسجيل أي ملاحظات خلال 24ساعة من التركيب، يعتبر العمل مستلماً نهائياً تلقائياً.</p>
+
+        <span class="art-title">البند السابع: الإلغاء والتعديلات</span>
+        <p class="dl">لا يحق للعميل إلغاء العقد بعد بدء التصنيع.</p>
+        <p class="dl">في حال الإلغاء، لايوجد التزام مالي على الشركة.</p>
+        <p class="dl">أي اضافة بعد اعتماد التصميم يتم احتسابه بقيمة إضافية.</p>
+
+        <span class="art-title">البند الثامن: الأحكام العامة</span>
+        <p class="bl">لا تتحمل الشركة مسؤولية اختلاف بسيط في اللون أو الخامة بسبب الإضاءة أو الطبيعة التصنيعية المقبولة.</p>
+        <p class="bl">نقل المنتج أو إعادة تركيبه لموقع جديد يتم برسوم.</p>
+        <p class="bl">يخضع العقد لأنظمة المملكة العربية السعودية، وتكون المحكمة المختصة في المركز الرئيسي للشركة هي المرجع لأي نزاع.</p>
+
+        <!-- Signature -->
+        <div class="sig-section">
+            <div class="sig-title">توقيع الطرفين</div>
+            <table class="sig-table">
+                <tr>
+                    <td class="sig-sep" style="text-align:right;">
+                        <div class="sig-party">الطرف الأول :</div>
+                        <div>شركة راها التجارية</div>
+                        <div>التوقيع :</div>
+                        <div>التاريخ:</div>
+                    </td>
+                    <td style="text-align:right;">
+                        <div class="sig-party">الطرف الثاني – العميل :</div>
+                        <div>الاسم : <span class="uif" id="out_client_sig">___________</span></div>
+                        <div>التوقيع :</div>
+                        <div>التاريخ: <span id="out_date_sig">__-__-____</span></div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+
+    <div class="cf">
+        <span>www.rahaksa.com</span>
+        <span>Imam Saud Bin Abdulaziz Bin Mohammed Rd, An Nuzhah, Riyadh 18497</span>
+    </div>
+</div>
+
+</div><!-- end page-wrap -->
+
+<script>
+    const { ipcRenderer } = require('electron');
+    const path = require('path');
+    const fs   = require('fs');
+
+    // ── FIREBASE: fetch next contract S/N ──
+    async function fetchNextSN() {
+        try {
+            const result = await ipcRenderer.invoke('get-next-sn');
+            if (result.success) {
+                const padded = String(result.value).padStart(3, '0');
+                document.getElementById('in_sn').value = padded;
+                sync();
+            }
+        } catch(e) { /* silent fail — manual entry still works */ }
+    }
+
+    // ── DIGIT-ONLY INPUT ──
+    function onDigits(el, max) {
+        el.value = el.value.replace(/\D/g, '').slice(0, max);
+    }
+
+    // ── CLEAR ERROR ──
+    function clearE(gid) {
+        document.getElementById(gid).classList.remove('field-error');
+    }
+
+    // ── LOGO LOADER ──
+    function loadLogo() {
+        const tries = [
+            path.join(process.resourcesPath || '', 'Logo', 'clogo.png'),
+            path.join(__dirname, 'Logo', 'clogo.png'),
+            path.join(process.resourcesPath || '', 'Logo', 'logo.png'),
+            path.join(__dirname, 'Logo', 'logo.png')
+        ];
+        const found = tries.find(p => fs.existsSync(p));
+        if (!found) return;
+        const b64 = 'data:image/png;base64,' + fs.readFileSync(found).toString('base64');
+        ['logo1','logo2'].forEach(id => {
+            document.getElementById(id).src = b64;
+            document.getElementById(id).style.display = 'block';
+        });
+        document.getElementById('lf1').style.display = 'none';
+        document.getElementById('lf2').style.display = 'none';
+    }
+
+    // ── DATE ──
+    function setDate() {
+        const t = new Date();
+        const d = String(t.getDate()).padStart(2,'0');
+        const m = String(t.getMonth()+1).padStart(2,'0');
+        const y = t.getFullYear();
+        const fmt = `${d}/${m}/${y}`;
+        document.getElementById('in_date').value       = fmt;
+        document.getElementById('out_date_p1').innerText = fmt;
+        document.getElementById('out_date_sig').innerText = fmt;
+    }
+
+    // ── SYNC ──
+    function sync() {
+        const client  = document.getElementById('in_client').value.trim();
+        const phoneSf = document.getElementById('in_phone').value.trim();
+        const phone   = phoneSf ? '05' + phoneSf : '';
+        const address = document.getElementById('in_address').value.trim();
+        const amount  = document.getElementById('in_amount').value.trim();
+        const atext   = document.getElementById('in_atext').value.trim();
+        const snSf    = document.getElementById('in_sn').value.trim();
+        const sn      = 'R1S' + (snSf || '____');
+        const dateVal = document.getElementById('in_date').value;
+        const days    = document.getElementById('in_days').value.trim() || '60';
+
+        document.getElementById('out_sn_p1').innerText      = sn;
+        document.getElementById('out_date_p1').innerText    = dateVal;
+        document.getElementById('out_client').innerText     = client ? ' ' + client : '___________';
+        document.getElementById('out_phone').innerText      = phone  || '___________';
+        document.getElementById('out_address').innerText   = address || '___________';
+        document.getElementById('out_amount').innerText    = amount  ? '#' + amount : '#__________';
+        document.getElementById('out_atext').innerText     = atext   || '__________';
+        document.getElementById('out_client_sig').innerText = client || '___________';
+        document.getElementById('out_date_sig').innerText  = dateVal;
+        document.getElementById('out_days').innerText      = days;
+    }
+
+    // ── VALIDATE ──
+    function validate() {
+        let ok = true;
+        const rules = [
+            { id:'in_client', gid:'grp-client', fn: v => v.trim().length > 0 },
+            { id:'in_phone',  gid:'grp-phone',  fn: v => v.trim().length === 8 },
+            { id:'in_address',gid:'grp-address',fn: v => v.trim().length > 0 },
+            { id:'in_amount', gid:'grp-amount', fn: v => v.trim().length > 0 },
+            { id:'in_atext',  gid:'grp-atext',  fn: v => v.trim().length > 0 },
+        ];
+        for (const r of rules) {
+            const val = document.getElementById(r.id).value;
+            if (!r.fn(val)) {
+                document.getElementById(r.gid).classList.add('field-error');
+                if (ok) document.getElementById(r.id).focus();
+                ok = false;
+            } else {
+                clearE(r.gid);
+            }
+        }
+        return ok;
+    }
+
+    // ── DOWNLOAD PDF ──
+    async function downloadPDF() {
+        if (!validate()) return;
+
+        const btn    = document.getElementById('dl-btn');
+        const client = document.getElementById('in_client').value.trim();
+        const snSf   = document.getElementById('in_sn').value.trim();
+        const sn     = 'R1S' + snSf;
+        const base   = client ? `${client}_${sn}_عقد` : `${sn}_عقد`;
+
+        btn.innerText = 'جاري الحفظ...';
+        btn.style.opacity = '0.5';
+        btn.disabled = true;
+
+        document.getElementById('controls').style.display    = 'none';
+        document.getElementById('page-wrap').style.marginRight = '0';
+
+        await new Promise(r => setTimeout(r, 300));
+
+        const result = await ipcRenderer.invoke('save-contract-pdf', base);
+
+        document.getElementById('controls').style.display    = 'block';
+        document.getElementById('page-wrap').style.marginRight = '340px';
+
+        if (result.success) {
+            btn.innerText = '✓ تم الحفظ!';
+            setTimeout(() => {
+                btn.innerText = '💾 حفظ العقد (PDF)';
+                btn.style.opacity = '1';
+                btn.disabled = false;
+            }, 2500);
+            // ── Firebase: increment contract counter ──
+            ipcRenderer.invoke('increment-sn').catch(() => {});
+            // ── Firebase: save contract record ──
+            try {
+                const record = {
+                    sn          : sn,
+                    clientName  : client,
+                    phone       : '05' + document.getElementById('in_phone').value.trim(),
+                    address     : document.getElementById('in_address').value.trim(),
+                    amount      : document.getElementById('in_amount').value.trim(),
+                    amountText  : document.getElementById('in_atext').value.trim(),
+                    days        : document.getElementById('in_days').value.trim() || '60',
+                    date        : document.getElementById('in_date').value,
+                    savedAt     : new Date().toISOString()
+                };
+                ipcRenderer.invoke('save-contract-record', record).catch(() => {});
+            } catch(e) { /* silent fail */ }
+        } else {
+            btn.innerText = '💾 حفظ العقد (PDF)';
+            btn.style.opacity = '1';
+            btn.disabled = false;
+        }
+    }
+
+    loadLogo();
+    setDate();
+    sync();
+    fetchNextSN();   // auto-fill S/N from Firebase
+</script>
+</body>
+</html>

@@ -15,7 +15,7 @@ function initFirebase() {
         const configPath = configCandidates.find(p => fs.existsSync(p));
 
         if (!configPath) {
-            console.warn('Firebase: firebase-config.json not found — ATT field will be manual.');
+            console.warn('Firebase: firebase-config.json not found — manual mode.');
             return;
         }
 
@@ -37,63 +37,33 @@ function initFirebase() {
 
 // ── AUTO-UPDATE SETUP ──
 function initAutoUpdater() {
-    // Only run when packaged — skip in dev mode (npm start)
     if (!app.isPackaged) {
         console.log('Auto-updater: skipped in dev mode.');
         return;
     }
-
     try {
         const { autoUpdater } = require('electron-updater');
+        autoUpdater.autoDownload = true;
+        autoUpdater.autoInstallOnAppQuit = true;
 
-        autoUpdater.autoDownload    = true;   // download silently in background
-        autoUpdater.autoInstallOnAppQuit = true; // install when user quits normally
-
-        // ── Events ──
-        autoUpdater.on('checking-for-update', () => {
-            console.log('Updater: checking...');
-        });
+        autoUpdater.on('checking-for-update', () => console.log('Updater: checking...'));
+        autoUpdater.on('update-not-available', () => console.log('Updater: up to date.'));
+        autoUpdater.on('error', (err) => console.error('Updater error:', err.message));
 
         autoUpdater.on('update-available', (info) => {
-            console.log('Updater: new version found —', info.version);
-            // Tell the renderer to show the "Downloading update..." banner
-            if (mainWindow) mainWindow.webContents.send('update-status', {
-                state: 'downloading',
-                version: info.version
-            });
-        });
-
-        autoUpdater.on('update-not-available', () => {
-            console.log('Updater: already up to date.');
+            if (mainWindow) mainWindow.webContents.send('update-status', { state: 'downloading', version: info.version });
         });
 
         autoUpdater.on('download-progress', (progress) => {
             const pct = Math.round(progress.percent);
-            if (mainWindow) mainWindow.webContents.send('update-status', {
-                state: 'downloading',
-                percent: pct
-            });
+            if (mainWindow) mainWindow.webContents.send('update-status', { state: 'downloading', percent: pct });
         });
 
         autoUpdater.on('update-downloaded', (info) => {
-            console.log('Updater: download complete —', info.version);
-            // Tell the renderer to show the "Restart to update" banner
-            if (mainWindow) mainWindow.webContents.send('update-status', {
-                state: 'ready',
-                version: info.version
-            });
+            if (mainWindow) mainWindow.webContents.send('update-status', { state: 'ready', version: info.version });
         });
 
-        autoUpdater.on('error', (err) => {
-            console.error('Updater error:', err.message);
-        });
-
-        // ── IPC: renderer can trigger install now ──
-        ipcMain.on('install-update-now', () => {
-            autoUpdater.quitAndInstall(false, true);
-        });
-
-        // Check for updates — 10 second delay so the window is fully ready first
+        ipcMain.on('install-update-now', () => autoUpdater.quitAndInstall(false, true));
         setTimeout(() => autoUpdater.checkForUpdates(), 10000);
 
     } catch (err) {
@@ -102,6 +72,7 @@ function initAutoUpdater() {
 }
 
 let mainWindow;
+let contractWindow = null;
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -116,7 +87,6 @@ function createWindow() {
             webSecurity: false
         }
     });
-
     mainWindow.loadFile('index.html');
     mainWindow.setMenuBarVisibility(false);
 }
@@ -124,85 +94,152 @@ function createWindow() {
 app.whenReady().then(() => {
     initFirebase();
     createWindow();
-    initAutoUpdater();   // runs after window is created
+    initAutoUpdater();
 });
 
-app.on('window-all-closed', () => {
-    app.quit();
-});
+app.on('window-all-closed', () => app.quit());
 
-// ── IPC: Get current ATT number from Firebase ──
+// ════════════════════════════════════════════
+// ── QUOTATION IPC HANDLERS ──
+// ════════════════════════════════════════════
+
+// Get current ATT number from Firebase
 ipcMain.handle('get-next-att', async () => {
     if (!db) return { success: false, reason: 'no-firebase' };
     try {
-        const ref = db.ref('quotation_counter');
-        const snap = await ref.once('value');
-        const current = snap.val() || 300;
-        return { success: true, value: current };
+        const snap = await db.ref('quotation_counter').once('value');
+        return { success: true, value: snap.val() || 300 };
     } catch (err) {
-        console.error('get-next-att error:', err.message);
         return { success: false, reason: err.message };
     }
 });
 
-// ── IPC: Increment ATT counter after successful PDF save ──
+// Increment ATT counter after successful PDF save
 ipcMain.handle('increment-att', async () => {
     if (!db) return { success: false, reason: 'no-firebase' };
     try {
-        const ref = db.ref('quotation_counter');
-        const result = await ref.transaction(current => (current || 300) + 1);
+        const result = await db.ref('quotation_counter').transaction(n => (n || 300) + 1);
         return { success: true, newValue: result.snapshot.val() };
     } catch (err) {
-        console.error('increment-att error:', err.message);
         return { success: false, reason: err.message };
     }
 });
 
-// ── IPC: Save quotation record to Firebase ──
+// Save quotation record to Firebase
 ipcMain.handle('save-quotation-record', async (event, record) => {
     if (!db) return { success: false, reason: 'no-firebase' };
     try {
-        // Use attNo as the key so each quotation is easy to find
-        const key = record.attNo.replace(/[.#$/[\]]/g, '_');
+        const key = record.attNo.replace(/[.#$[\]]/g, '_');
         await db.ref('quotations/' + key).set(record);
         console.log('Quotation saved to Firebase:', key);
         return { success: true };
     } catch (err) {
-        console.error('save-quotation-record error:', err.message);
         return { success: false, reason: err.message };
     }
 });
 
-// ── IPC: Handle PDF save from renderer ──
-ipcMain.handle('save-pdf', async (event, customerName, attCode) => {
-    const namePart = customerName ? customerName.trim() : 'Quotation';
-    const attPart  = attCode ? `_${attCode.trim()}` : '';
-    const defaultName = `${namePart}${attPart}.pdf`;
-
+// Save Quotation PDF
+ipcMain.handle('save-pdf', async (event, baseName) => {
+    const defaultName = baseName ? `${baseName}.pdf` : 'Quotation.pdf';
     const { filePath, canceled } = await dialog.showSaveDialog(mainWindow, {
         title: 'Save Quotation As',
         defaultPath: defaultName,
         filters: [{ name: 'PDF Files', extensions: ['pdf'] }]
     });
-
     if (canceled || !filePath) return { success: false };
-
     try {
         const pdfBuffer = await mainWindow.webContents.printToPDF({
-            printBackground: true,
-            pageSize: 'A4',
-            landscape: false,
-            margins: {
-                marginType: 'custom',
-                top: 0, bottom: 0, left: 0, right: 0
-            }
+            printBackground: true, pageSize: 'A4', landscape: false,
+            margins: { marginType: 'custom', top: 0, bottom: 0, left: 0, right: 0 }
         });
-
         fs.writeFileSync(filePath, pdfBuffer);
         shell.openPath(filePath);
         return { success: true };
     } catch (err) {
         console.error('PDF Error:', err);
+        return { success: false, error: err.message };
+    }
+});
+
+// ════════════════════════════════════════════
+// ── CONTRACT IPC HANDLERS ──
+// ════════════════════════════════════════════
+
+// Open Contract Window
+ipcMain.handle('open-contract', async () => {
+    if (contractWindow) { contractWindow.focus(); return; }
+    contractWindow = new BrowserWindow({
+        width: 1300,
+        height: 900,
+        minWidth: 1000,
+        minHeight: 700,
+        title: 'Raha Co. — عقد تصنيع',
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            webSecurity: false
+        }
+    });
+    contractWindow.loadFile('contract.html');
+    contractWindow.setMenuBarVisibility(false);
+    contractWindow.on('closed', () => { contractWindow = null; });
+});
+
+// Get current contract S/N from Firebase
+ipcMain.handle('get-next-sn', async () => {
+    if (!db) return { success: false, reason: 'no-firebase' };
+    try {
+        const snap = await db.ref('contract_counter').once('value');
+        return { success: true, value: snap.val() || 1 };
+    } catch (err) {
+        return { success: false, reason: err.message };
+    }
+});
+
+// Increment contract S/N counter after successful PDF save
+ipcMain.handle('increment-sn', async () => {
+    if (!db) return { success: false, reason: 'no-firebase' };
+    try {
+        const result = await db.ref('contract_counter').transaction(n => (n || 1) + 1);
+        return { success: true, newValue: result.snapshot.val() };
+    } catch (err) {
+        return { success: false, reason: err.message };
+    }
+});
+
+// Save contract record to Firebase
+ipcMain.handle('save-contract-record', async (event, record) => {
+    if (!db) return { success: false, reason: 'no-firebase' };
+    try {
+        const key = record.sn.replace(/[.#$[\]]/g, '_');
+        await db.ref('contracts/' + key).set(record);
+        console.log('Contract saved to Firebase:', key);
+        return { success: true };
+    } catch (err) {
+        return { success: false, reason: err.message };
+    }
+});
+
+// Save Contract PDF
+ipcMain.handle('save-contract-pdf', async (event, baseName) => {
+    if (!contractWindow) return { success: false };
+    const defaultName = baseName ? `${baseName}.pdf` : 'عقد_تصنيع.pdf';
+    const { filePath, canceled } = await dialog.showSaveDialog(contractWindow, {
+        title: 'حفظ العقد',
+        defaultPath: defaultName,
+        filters: [{ name: 'PDF Files', extensions: ['pdf'] }]
+    });
+    if (canceled || !filePath) return { success: false };
+    try {
+        const pdfBuffer = await contractWindow.webContents.printToPDF({
+            printBackground: true, pageSize: 'A4', landscape: false,
+            margins: { marginType: 'custom', top: 0, bottom: 0, left: 0, right: 0 }
+        });
+        fs.writeFileSync(filePath, pdfBuffer);
+        shell.openPath(filePath);
+        return { success: true };
+    } catch (err) {
+        console.error('Contract PDF Error:', err);
         return { success: false, error: err.message };
     }
 });
