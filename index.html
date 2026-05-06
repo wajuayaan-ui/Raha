@@ -46,6 +46,8 @@
 
         .add-btn { background: #486581; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; font-size: 14px; }
         .save-pdf-btn { background: var(--success); color: white; padding: 15px; border: none; border-radius: 6px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 20px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .contract-btn { background: #102a43; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; width: 100%; font-size: 14px; margin-top: 8px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .contract-btn:hover { background: #1e3a5c; }
 
         /* QUOTATION SHEET */
         #page-wrap { margin-left: 400px; padding: 40px; display: flex; justify-content: center; }
@@ -196,6 +198,7 @@
     <button class="lang-btn" id="lang-toggle-btn" onclick="toggleLang()">🌐 Switch to Arabic | التبديل للعربية</button>
     <button class="lang-btn" id="refresh-btn" onclick="refreshForm()" style="background:#c0392b;margin-bottom:5px;">🔄 New Quotation | عرض سعر جديد</button>
     <button class="lang-btn" id="dn-btn" onclick="toggleDeliveryNote()" style="background:#7b2d8b;margin-bottom:5px;">📦 Delivery Note | إشعار التسليم</button>
+    <button class="contract-btn" onclick="openContract()">📋 Open Contract | عقد تصنيع</button>
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:15px;">
         <button onclick="zoomOut()" style="flex:1;padding:7px;background:#f0f4f8;border:1px solid #bcccdc;border-radius:6px;font-size:18px;font-weight:bold;cursor:pointer;color:#102a43;">−</button>
         <span id="zoom-display" style="flex:2;text-align:center;font-size:12px;font-weight:700;color:#486581;background:#f0f4f8;padding:7px;border-radius:6px;border:1px solid #bcccdc;">100%</span>
@@ -992,6 +995,11 @@ Click below to restart and apply the update.`;
             document.getElementById('update-overlay').classList.remove('visible');
         };
     })();
+
+    // ── OPEN CONTRACT WINDOW ──
+    function openContract() {
+        ipcRenderer.invoke('open-contract').catch(() => {});
+    }
 
     loadLogo();
     setTodayDate();
