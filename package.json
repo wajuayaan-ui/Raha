@@ -20,6 +20,7 @@
       "index.html",
       "quotation.html",
       "contract.html",
+      "purchaseorder.html",
       "firebase-config.json"
     ],
     "extraResources": [
