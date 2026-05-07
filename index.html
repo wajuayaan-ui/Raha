@@ -408,14 +408,14 @@
             <span class="card-arrow">›</span>
         </div>
 
-        <!-- Purchase Order — coming soon -->
-        <div class="module-card disabled">
+        <!-- Purchase Order -->
+        <div class="module-card" onclick="openModule('purchase')">
             <div class="card-icon orange">🛒</div>
             <div class="card-text">
                 <div class="card-title">Purchase Order</div>
                 <div class="card-desc" id="desc-p">Create and manage purchase orders</div>
             </div>
-            <span class="soon-badge">Soon</span>
+            <span class="card-arrow">›</span>
         </div>
 
     </div>
@@ -423,7 +423,7 @@
 
 <!-- Footer -->
 <footer>
-    <span id="footer-text">© 2024 Raha Trading Co. All rights reserved.</span>
+    <span id="footer-text">© 2026 Raha Trading Co. All rights reserved.</span>
 </footer>
 
 <!-- Auto-update popup -->
@@ -503,10 +503,16 @@
 
     // ── Open modules ──
     function openModule(module) {
-        if (module === 'quotation' || module === 'delivery') {
+        if (module === 'quotation') {
+            localStorage.setItem('rahaMode', 'quotation');
+            ipcRenderer.invoke('open-quotation').catch(() => {});
+        } else if (module === 'delivery') {
+            localStorage.setItem('rahaMode', 'delivery');
             ipcRenderer.invoke('open-quotation').catch(() => {});
         } else if (module === 'contract') {
             ipcRenderer.invoke('open-contract').catch(() => {});
+        } else if (module === 'purchase') {
+            ipcRenderer.invoke('open-purchase').catch(() => {});
         }
     }
 

@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raha Co. — Purchase Order</title>
+<style>
+    :root {
+        --navy:       #12243a;
+        --navy-mid:   #1e3a5f;
+        --accent:     #12243a;
+        --border:     #cdd5df;
+        --bg:         #f0f4f8;
+        --white:      #ffffff;
+        --text:       #12243a;
+        --muted:      #64748b;
+        --danger:     #dc2626;
+        --success:    #16a34a;
+        --warn-bg:    #fff7ed;
+        --warn-border:#f97316;
+        --sidebar-w:  380px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); user-select: none; }
+
+    /* ══ SIDEBAR ══ */
+    #controls {
+        width: var(--sidebar-w); position: fixed; left: 0; top: 0; bottom: 0;
+        background: #fff; border-right: 1px solid var(--border);
+        overflow: hidden; z-index: 1000; display: flex; flex-direction: column;
+    }
+    #sidebar-topbar { padding: 14px 18px 0; flex-shrink: 0; }
+
+    .top-btn {
+        width: 100%; padding: 9px 12px; margin-bottom: 7px;
+        border: none; border-radius: 7px; cursor: pointer;
+        font-size: 12px; font-weight: 700; color: white;
+    }
+    .top-btn.navy   { background: var(--navy); }
+    .top-btn.red    { background: #c0392b; }
+
+    .tab-bar { display: flex; border-bottom: 2px solid #e2e8f0; }
+    .tab-btn {
+        flex: 1; padding: 10px 5px; border: none; background: #f8fafc;
+        font-size: 11px; font-weight: 700; cursor: pointer; color: var(--muted);
+        border-bottom: 3px solid transparent; margin-bottom: -2px;
+        transition: all 0.18s; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .tab-btn.active { background: #fff; color: var(--navy); border-bottom-color: var(--navy); }
+    .tab-btn:hover:not(.active) { background: #f0f4f8; }
+
+    .tab-panel { display: none; flex: 1; overflow-y: auto; padding: 14px 18px; flex-direction: column; }
+    .tab-panel.active { display: flex; }
+
+    .ig { margin-bottom: 13px; }
+    .ig label {
+        display: block; font-size: 10px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 5px;
+    }
+    .ig input, .ig select {
+        width: 100%; padding: 9px 11px; border: 1px solid var(--border);
+        border-radius: 6px; font-size: 13px; color: var(--text);
+        transition: border-color 0.15s;
+    }
+    .ig input:focus, .ig select:focus { outline: none; border-color: var(--navy); }
+
+    .field-error input, .field-error .prefix-input { border-color: #d32f2f !important; background: #fff5f5 !important; }
+    .field-warn { font-size: 10px; color: #d32f2f; font-weight: 700; margin-top: 3px; display: none; }
+    .field-error .field-warn { display: block; }
+
+    .section-divider {
+        font-size: 10px; font-weight: 800; text-transform: uppercase;
+        letter-spacing: 1px; color: var(--navy); padding: 8px 0 6px;
+        border-bottom: 1.5px solid #e2e8f0; margin-bottom: 12px;
+    }
+
+    /* ── Row Editor ── */
+    .row-editor {
+        background: #f8fafc; padding: 13px; border-radius: 8px;
+        border: 1.5px solid #e2e8f0; margin-bottom: 12px; position: relative;
+        transition: border-color 0.18s, background 0.18s;
+    }
+    .row-editor.duplicate { border-color: var(--warn-border) !important; background: var(--warn-bg) !important; }
+    .dup-badge {
+        display: none; background: var(--warn-border); color: white;
+        font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 8px; margin-left: 5px;
+    }
+    .row-editor.duplicate .dup-badge { display: inline-block; }
+    .row-header {
+        font-size: 10px; font-weight: 700; color: var(--muted);
+        text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    .delete-row {
+        background: transparent; color: var(--danger); border: none;
+        border-radius: 50%; cursor: pointer; padding: 0; font-size: 15px; font-weight: 700;
+        width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
+        line-height: 1;
+    }
+    .delete-row:hover { background: #fee2e2; }
+
+    /* QTY circles */
+    .qty-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+    .qc {
+        width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--navy);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 11px; font-weight: 700; cursor: pointer; background: white;
+        transition: all 0.15s;
+    }
+    .qc.active { background: var(--navy); color: white; }
+    .qc-custom {
+        padding: 0 10px; height: 26px; border-radius: 13px;
+        border: 1px solid var(--navy); font-size: 10px; font-weight: 700;
+        cursor: pointer; background: white; color: var(--navy);
+    }
+
+    /* Two-col row for price / disc */
+    .two-col { display: flex; gap: 8px; }
+    .two-col .ig { flex: 1; }
+
+    .add-row-btn {
+        width: 100%; padding: 11px; background: #1e3a5f; color: white;
+        border: none; border-radius: 7px; cursor: pointer; font-size: 13px;
+        font-weight: 700; margin-top: 4px; letter-spacing: 0.3px;
+    }
+    .dl-btn {
+        width: 100%; padding: 14px; background: var(--success); color: white;
+        border: none; border-radius: 7px; cursor: pointer; font-size: 15px;
+        font-weight: 700; margin-top: 12px; box-shadow: 0 3px 8px rgba(22,163,74,0.25);
+        letter-spacing: 0.3px;
+    }
+
+    /* ══ SIDEBAR RESIZER ══ */
+    #sidebar-resizer {
+        position: fixed; top: 0; bottom: 0; width: 6px; left: var(--sidebar-w);
+        cursor: ew-resize; z-index: 1001; background: transparent; transition: background 0.15s;
+    }
+    #sidebar-resizer:hover, #sidebar-resizer.dragging { background: rgba(18,36,58,0.3); }
+    #sidebar-resizer::after {
+        content: ''; position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%,-50%);
+        width: 2px; height: 48px; background: rgba(18,36,58,0.15); border-radius: 2px;
+    }
+    #sidebar-resizer:hover::after, #sidebar-resizer.dragging::after { background: rgba(18,36,58,0.55); }
+
+    /* ══ ZOOM ══ */
+    .zoom-row {
+        display: flex; align-items: center; gap: 6px; margin-bottom: 10px;
+    }
+    .zoom-btn {
+        flex: 1; padding: 7px; background: #f0f4f8; border: 1px solid var(--border);
+        border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; color: var(--navy);
+    }
+    .zoom-lbl {
+        flex: 2; text-align: center; font-size: 11px; font-weight: 700; color: var(--muted);
+        background: #f0f4f8; padding: 7px; border-radius: 6px; border: 1px solid var(--border);
+    }
+
+    /* ══ PAGE WRAP ══ */
+    #page-wrap {
+        margin-left: calc(var(--sidebar-w) + 20px);
+        padding: 40px 40px 60px;
+        display: flex; justify-content: center;
+    }
+
+    /* ══ PO SHEET ══ */
+    .po-sheet {
+        width: 210mm;
+        background: white;
+        padding: 14mm 14mm 16mm;
+        box-shadow: 0 8px 30px rgba(18,36,58,0.1);
+        border-top: 6px solid var(--navy);
+        font-family: 'Segoe UI', Arial, sans-serif;
+        font-size: 12px;
+        color: var(--text);
+    }
+
+    /* ── Sheet Header ── */
+    .sh-header {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        margin-bottom: 20px;
+    }
+    .sh-logo { max-height: 80px; max-width: 130px; object-fit: contain; }
+    .sh-logo-fallback { font-size: 20px; font-weight: 800; color: var(--navy); }
+    .sh-addr {
+        text-align: right; font-size: 10.5px; color: #475569; line-height: 1.7;
+    }
+    .sh-addr strong { color: var(--navy); }
+
+    /* ── PO Title ── */
+    .po-title-row {
+        display: flex; justify-content: space-between; align-items: flex-end;
+        margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #e2e8f0;
+    }
+    .po-title {
+        font-size: 24px; font-weight: 700; color: var(--navy); letter-spacing: -0.5px;
+    }
+
+    /* ── Info boxes ── */
+    .info-grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;
+    }
+    .info-box {
+        background: #f8fafc; border: 1px solid #e2e8f0;
+        border-radius: 8px; padding: 10px 14px;
+    }
+    .info-box-title {
+        font-size: 10px; font-weight: 800; text-transform: uppercase;
+        letter-spacing: 0.8px; color: var(--muted); margin-bottom: 6px;
+    }
+    .info-row { font-size: 11.5px; margin-bottom: 3px; color: var(--text); }
+    .info-row strong { color: var(--navy); }
+
+    /* ── Buyer bar ── */
+    .buyer-bar {
+        background: #f0f4f8; border: 1px solid #e2e8f0; border-radius: 7px;
+        display: grid; grid-template-columns: 1fr 1fr 1fr;
+        margin-bottom: 14px; overflow: hidden;
+    }
+    .buyer-cell {
+        padding: 8px 14px; border-right: 1px solid #e2e8f0;
+    }
+    .buyer-cell:last-child { border-right: none; }
+    .buyer-cell-lbl { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 3px; }
+    .buyer-cell-val { font-size: 12px; font-weight: 600; color: var(--navy); }
+
+    /* ── Items table ── */
+    .po-table-wrap { border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; }
+    .po-table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
+    .po-table thead tr { background: var(--navy); }
+    .po-table th {
+        color: white; font-size: 10px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.5px;
+        padding: 9px 10px; text-align: center;
+    }
+    .po-table th:first-child { text-align: left; }
+    .po-table td {
+        padding: 8px 10px; font-size: 11.5px; text-align: center;
+        border-bottom: 1px solid #e2e8f0; vertical-align: middle;
+    }
+    .po-table td:first-child { text-align: left; font-weight: 500; }
+    .po-table tbody tr:nth-child(even) { background: #fafbfc; }
+    .po-table tr { page-break-inside: avoid; }
+    .po-table tr.dup-row { background: #fff7ed !important; }
+    .dup-icon { color: var(--warn-border); font-size: 10px; margin-left: 3px; }
+
+
+    /* ── Footer ── */
+    .po-footer {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-top: 28px; padding-top: 10px; border-top: 1px solid #e2e8f0;
+        font-size: 9.5px; color: #94a3b8;
+    }
+
+    @media print {
+        #controls, #sidebar-resizer { display: none !important; }
+        #page-wrap { margin: 0 !important; padding: 0 !important; }
+        .po-sheet { box-shadow: none !important; border-top: none !important; width: 100% !important; }
+    }
+</style>
+</head>
+<body>
+
+<!-- RESIZER -->
+<div id="sidebar-resizer"></div>
+
+<!-- ══════════════ SIDEBAR ══════════════ -->
+<div id="controls">
+    <div id="sidebar-topbar">
+        <div class="zoom-row">
+            <button class="zoom-btn" onclick="zoomOut()">−</button>
+            <span class="zoom-lbl" id="zoom-display">100%</span>
+            <button class="zoom-btn" onclick="zoomIn()">+</button>
+        </div>
+        <div class="tab-bar">
+            <button class="tab-btn active" id="tab-editor-btn" onclick="switchTab('editor')">✏️ Editor</button>
+        </div>
+    </div>
+
+    <!-- EDITOR TAB -->
+    <div class="tab-panel active" id="tab-editor" style="display:flex;">
+
+        <!-- PO Number -->
+        <div class="ig">
+            <label>Purchase Order #</label>
+            <div style="display:flex;align-items:stretch;">
+                <span style="padding:9px 10px;background:#f0f4f8;border:1px solid var(--border);border-right:none;border-radius:6px 0 0 6px;font-size:13px;font-weight:800;color:var(--navy);white-space:nowrap;">P</span>
+                <input type="text" id="in_po_num" placeholder="Loading…" maxlength="6" oninput="sync()" style="border-radius:0 6px 6px 0;flex:1;min-width:0;font-weight:700;background:#f0f4f8;" readonly>
+            </div>
+        </div>
+
+        <!-- Dates -->
+        <div style="display:flex;gap:8px;">
+            <div class="ig" style="flex:1;">
+                <label>Order Date</label>
+                <input type="text" id="in_order_date" readonly style="background:#f0f4f8;cursor:default;">
+            </div>
+            <div class="ig" style="flex:1;">
+                <label>Expected Arrival</label>
+                <input type="date" id="in_arrival_date" oninput="sync()">
+            </div>
+        </div>
+
+        <!-- Vendor Info -->
+        <div class="section-divider">📦 Vendor Info</div>
+        <div class="ig" id="grp-vendor-name"><label>Vendor Name</label><input type="text" id="in_vendor_name" placeholder="Vendor / Supplier name" oninput="clearError('grp-vendor-name');sync()"><div class="field-warn">⚠ Vendor name is required</div></div>
+        <div class="ig" id="grp-vendor-phone">
+            <label>Vendor Phone</label>
+            <div style="display:flex;align-items:stretch;">
+                <span class="prefix-input" style="padding:9px 10px;background:#f0f4f8;border:1px solid var(--border);border-right:none;border-radius:6px 0 0 6px;font-size:13px;font-weight:800;color:var(--navy);white-space:nowrap;">+966</span>
+                <input type="text" id="in_vendor_phone" placeholder="5XXXXXXXXX" maxlength="10" inputmode="numeric"
+                    style="border-radius:0 6px 6px 0;flex:1;min-width:0;"
+                    oninput="this.value=this.value.replace(/\D/g,'').slice(0,10);clearError('grp-vendor-phone');syncPhone();">
+            </div>
+            <div class="field-warn">⚠ Vendor phone is required</div>
+        </div>
+
+        <!-- Buyer Info -->
+        <div class="section-divider">🏢 Buyer Info</div>
+        <div class="ig" id="grp-buyer-name"><label>Customer / Buyer Name</label><input type="text" id="in_buyer_name" placeholder="Customer name" oninput="clearError('grp-buyer-name');sync()"><div class="field-warn">⚠ Buyer name is required</div></div>
+
+        <!-- Global Discount -->
+        <div class="ig"><label>Global Discount (%)</label><input type="number" id="in_disc" value="0" min="0" max="100" oninput="sync()"></div>
+
+        <hr style="margin:6px 0 14px;border:0.5px solid #e2e8f0;">
+
+        <!-- ROW EDITORS -->
+        <div id="row-inputs"></div>
+
+        <button class="add-row-btn" onclick="addRow()">+ Add Item</button>
+        <button class="dl-btn" id="dl-btn" onclick="downloadPDF()">⬇ DOWNLOAD PDF</button>
+    </div>
+</div>
+
+<!-- ══════════════ PO SHEET ══════════════ -->
+<div id="page-wrap">
+<div class="po-sheet" id="po-sheet">
+
+    <!-- HEADER -->
+    <div class="sh-header">
+        <div>
+            <img id="sheet-logo" class="sh-logo" src="" style="display:none;" alt="Raha Logo">
+            <div class="sh-logo-fallback" id="sheet-logo-fallback">Raha Co.</div>
+        </div>
+        <div class="sh-addr">
+            <div>Imam Saud Bin Abdulaziz Bin Mohammed Rd,</div>
+            <div>An Nuzhah, Riyadh 18497, Saudi Arabia</div>
+        </div>
+    </div>
+
+    <!-- PO TITLE -->
+    <div class="po-title-row">
+        <div class="po-title">Purchase Order <span id="out_po_num">#P0001</span></div>
+    </div>
+
+    <!-- INFO GRID: Shipping + Vendor -->
+    <div class="info-grid">
+        <div class="info-box">
+            <div class="info-box-title">Shipping Address</div>
+            <div class="info-row">Imam Saud Bin Abdulaziz Bin Mohammed Rd,</div>
+            <div class="info-row">An Nuzhah, Riyadh 18497,</div>
+            <div class="info-row">Saudi Arabia</div>
+            <div class="info-row">☎ +966500052564</div>
+        </div>
+        <div class="info-box">
+            <div class="info-box-title">Vendor Info</div>
+            <div class="info-row" style="display:flex;flex-direction:column;gap:6px;">
+                <div style="border:1px solid #e2e8f0;border-radius:5px;padding:5px 10px;background:#fff;">
+                    <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--muted);display:block;margin-bottom:2px;">Name</span>
+                    <span id="out_vendor_name" style="font-size:12px;font-weight:600;color:var(--navy);">—</span>
+                </div>
+                <div style="border:1px solid #e2e8f0;border-radius:5px;padding:5px 10px;background:#fff;">
+                    <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--muted);display:block;margin-bottom:2px;">Phone</span>
+                    <span id="out_vendor_phone" style="font-size:12px;font-weight:600;color:var(--navy);">—</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BUYER BAR -->
+    <div class="buyer-bar">
+        <div class="buyer-cell">
+            <div class="buyer-cell-lbl">Buyer</div>
+            <div class="buyer-cell-val" id="out_buyer_name">—</div>
+        </div>
+        <div class="buyer-cell">
+            <div class="buyer-cell-lbl">Order Date</div>
+            <div class="buyer-cell-val" id="out_order_date">—</div>
+        </div>
+        <div class="buyer-cell">
+            <div class="buyer-cell-lbl">Expected Arrival</div>
+            <div class="buyer-cell-val" id="out_arrival_date">—</div>
+        </div>
+    </div>
+
+    <!-- ITEMS TABLE -->
+    <div class="po-table-wrap">
+    <table class="po-table">
+        <thead>
+            <tr>
+                <th style="text-align:left;width:38%;">Description</th>
+                <th width="50px">QTY</th>
+                <th width="90px">Unit Price</th>
+                <th width="70px" id="th-disc" style="display:none;">DISC.</th>
+                <th width="90px">Amount</th>
+            </tr>
+        </thead>
+        <tbody id="po-rows"></tbody>
+        <tfoot id="po-tfoot">
+            <tr style="border-top:2px solid #e2e8f0;">
+                <td colspan="2" style="border:none;padding:0;"></td>
+                <td style="border:none;padding:6px 10px;font-size:11px;font-weight:600;color:#64748b;text-align:right;background:#f8fafc;">Sub Total</td>
+                <td style="border:none;padding:6px 10px;font-size:11px;font-weight:700;text-align:right;color:#12243a;" id="out_subtotal">0.00 SR</td>
+            </tr>
+            <tr id="disc-row" style="display:none;">
+                <td colspan="2" style="border:none;padding:0;"></td>
+                <td style="border:none;padding:6px 10px;font-size:11px;font-weight:600;color:#dc2626;text-align:right;background:#fff5f5;" id="out_disc_lbl">Discount (0%)</td>
+                <td style="border:none;padding:6px 10px;font-size:11px;font-weight:700;text-align:right;color:#dc2626;background:#fff5f5;" id="out_disc_val">-0.00 SR</td>
+            </tr>
+            <tr>
+                <td colspan="2" style="border:none;padding:0;"></td>
+                <td style="border:none;padding:6px 10px;font-size:11px;font-weight:600;color:#64748b;text-align:right;background:#f8fafc;">15% VAT Taxes</td>
+                <td style="border:none;padding:6px 10px;font-size:11px;font-weight:700;text-align:right;color:#12243a;" id="out_vat">0.00 SR</td>
+            </tr>
+            <tr>
+                <td colspan="2" style="border:none;padding:0;"></td>
+                <td style="border:none;padding:8px 10px;font-size:12px;font-weight:800;text-align:right;background:#12243a;color:white;">Total Inc. VAT</td>
+                <td style="border:none;padding:8px 10px;font-size:12px;font-weight:800;text-align:right;background:#12243a;color:white;" id="out_grand">0.00 SR</td>
+            </tr>
+        </tfoot>
+    </table>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="po-footer">
+        <span>Imam Saud Bin Abdulaziz Bin Mohammed Rd, An Nuzhah, Riyadh 18497</span>
+        <span>www.rahaksa.com</span>
+    </div>
+
+</div><!-- /po-sheet -->
+</div><!-- /page-wrap -->
+
+<script>
+    const { ipcRenderer } = require('electron');
+    const path = require('path');
+    const fs   = require('fs');
+
+    let rowIdCounter = 0;
+    let zoomLevel    = 1.0;
+
+    // ── LOGO ──
+    function loadLogo() {
+        const bases = [__dirname, process.resourcesPath || ''];
+        const exts  = ['png','jpg','jpeg','PNG','JPG'];
+        for (const base of bases) {
+            for (const ext of exts) {
+                const p = path.join(base, 'Logo', 'logo.' + ext);
+                if (fs.existsSync(p)) {
+                    try {
+                        const mime = ext.toLowerCase() === 'png' ? 'png' : 'jpeg';
+                        const b64  = `data:image/${mime};base64,` + fs.readFileSync(p).toString('base64');
+                        const img  = document.getElementById('sheet-logo');
+                        img.src    = b64;
+                        img.style.display = 'block';
+                        document.getElementById('sheet-logo-fallback').style.display = 'none';
+                        return;
+                    } catch(e) {}
+                }
+            }
+        }
+    }
+
+    // ── DATE ──
+    function setTodayDate() {
+        const now = new Date();
+        const d   = String(now.getDate()).padStart(2,'0');
+        const m   = String(now.getMonth()+1).padStart(2,'0');
+        const y   = now.getFullYear();
+        const fmt = `${d}/${m}/${y}`;
+        document.getElementById('in_order_date').value = fmt;
+        document.getElementById('out_order_date').textContent = fmt;
+    }
+
+    function formatDateDisplay(val) {
+        if (!val) return '—';
+        // val from <input type="date"> is YYYY-MM-DD
+        const parts = val.split('-');
+        if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        return val;
+    }
+
+    // ── ZOOM ──
+    function zoomIn()  { zoomLevel = Math.min(+(zoomLevel+0.1).toFixed(1), 2.0); applyZoom(); }
+    function zoomOut() { zoomLevel = Math.max(+(zoomLevel-0.1).toFixed(1), 0.4); applyZoom(); }
+    function applyZoom() {
+        document.getElementById('page-wrap').style.zoom = zoomLevel;
+        document.getElementById('zoom-display').textContent = Math.round(zoomLevel*100) + '%';
+    }
+
+    // ── TAB ──
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => { p.classList.remove('active'); p.style.display='none'; });
+        document.getElementById('tab-'+tab+'-btn').classList.add('active');
+        const p = document.getElementById('tab-'+tab);
+        p.classList.add('active'); p.style.display = 'flex';
+    }
+
+    // ── RESIZER ──
+    (function() {
+        const resizer = document.getElementById('sidebar-resizer');
+        const sidebar = document.getElementById('controls');
+        const wrap    = document.getElementById('page-wrap');
+        let startX, startW;
+        resizer.addEventListener('mousedown', e => {
+            startX = e.clientX; startW = sidebar.offsetWidth;
+            resizer.classList.add('dragging');
+            document.body.style.cursor = 'ew-resize';
+            document.body.style.userSelect = 'none';
+            e.preventDefault();
+            function mv(e2) {
+                const nw = Math.min(600, Math.max(260, startW + e2.clientX - startX));
+                sidebar.style.width = nw + 'px';
+                resizer.style.left  = nw + 'px';
+                wrap.style.marginLeft = (nw + 20) + 'px';
+            }
+            function up() {
+                resizer.classList.remove('dragging');
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+                window.removeEventListener('mousemove', mv);
+                window.removeEventListener('mouseup', up);
+            }
+            window.addEventListener('mousemove', mv);
+            window.addEventListener('mouseup', up);
+        });
+    })();
+
+    // ── QTY ──
+    function setQty(id, val, el) {
+        document.getElementById('qty-val-'+id).value = val;
+        el.parentElement.querySelectorAll('.qc').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        sync();
+    }
+    function toggleCustomQty(id) {
+        const inp = document.getElementById('qty-val-'+id);
+        inp.style.display = inp.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // ── DELETE ROW ──
+    function deleteRow(id) {
+        const el = document.getElementById('row-'+id);
+        if (el) el.remove();
+        sync();
+    }
+
+    // ── escHtml ──
+    function escHtml(s) {
+        return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // ── ADD ROW ──
+    function addRow(prefill) {
+        const id  = rowIdCounter++;
+        const div = document.createElement('div');
+        div.className = 'row-editor';
+        div.id = 'row-' + id;
+
+        const descVal  = prefill ? escHtml(prefill.desc)  : '';
+        const priceVal = prefill ? prefill.price           : '0.00';
+        const discVal  = prefill ? (prefill.disc || '0')  : '0';
+
+        div.innerHTML = `
+            <div class="row-header">
+                <span>Item <span class="dup-badge">⚠ Duplicate</span></span>
+                <button class="delete-row" onclick="deleteRow(${id})">✕</button>
+            </div>
+
+            <div class="ig">
+                <label>Description</label>
+                <input type="text" class="r-desc" value="${descVal}" placeholder="Item description…" oninput="sync()">
+            </div>
+
+            <div class="ig">
+                <label>Qty</label>
+                <div class="qty-row">
+                    <div class="qc active" onclick="setQty(${id},1,this)">1</div>
+                    <div class="qc" onclick="setQty(${id},2,this)">2</div>
+                    <div class="qc" onclick="setQty(${id},3,this)">3</div>
+                    <div class="qc" onclick="setQty(${id},4,this)">4</div>
+                    <div class="qc" onclick="setQty(${id},5,this)">5</div>
+                    <div class="qc" onclick="setQty(${id},6,this)">6</div>
+                    <div class="qc" onclick="setQty(${id},7,this)">7</div>
+                    <div class="qc" onclick="setQty(${id},8,this)">8</div>
+                    <div class="qc" onclick="setQty(${id},9,this)">9</div>
+                    <div class="qc-custom" onclick="toggleCustomQty(${id})">Custom</div>
+                </div>
+                <input type="number" class="r-qty" id="qty-val-${id}" value="1" min="1" oninput="sync()" style="display:none;margin-top:4px;">
+            </div>
+
+            <div class="two-col">
+                <div class="ig">
+                    <label>Unit Price (SR)</label>
+                    <input type="number" class="r-price" value="${priceVal}" min="0" step="0.01" oninput="sync()">
+                </div>
+                <div class="ig" id="disc-field-${id}">
+                    <label>Disc. (%)</label>
+                    <input type="number" class="r-disc" value="${discVal}" min="0" max="100" oninput="sync(); checkDiscVisibility();">
+                </div>
+            </div>
+        `;
+        document.getElementById('row-inputs').appendChild(div);
+        sync();
+    }
+
+    // ── DISC COLUMN VISIBILITY ──
+    // Show disc column on sheet only if any row has disc > 0
+    function checkDiscVisibility() {
+        const anyDisc = [...document.querySelectorAll('.r-disc')].some(i => parseFloat(i.value) > 0);
+        document.getElementById('th-disc').style.display = anyDisc ? '' : 'none';
+        // show/hide disc cells is handled in sync() row build
+    }
+
+    // ── DUPLICATE CHECK ──
+    function checkDuplicates() {
+        const editors = [...document.querySelectorAll('.row-editor')];
+        const descs   = editors.map(ed => (ed.querySelector('.r-desc').value||'').trim().toLowerCase());
+        editors.forEach((ed, i) => {
+            const isDup = descs[i] !== '' && descs.filter((d,j) => j !== i && d === descs[i]).length > 0;
+            ed.classList.toggle('duplicate', isDup);
+        });
+    }
+
+    // ── REFRESH ──
+    function refreshForm() {
+        if (!confirm('Start a new Purchase Order? All data will be cleared.')) return;
+        document.getElementById('in_po_num').value      = '';
+        document.getElementById('in_vendor_name').value = '';
+        document.getElementById('in_vendor_phone').value= '';
+        document.getElementById('in_buyer_name').value  = '';
+        document.getElementById('in_arrival_date').value= '';
+        document.getElementById('in_disc').value        = '0';
+        document.getElementById('row-inputs').innerHTML = '';
+        rowIdCounter = 0;
+        setTodayDate();
+        sync();
+        addRow();
+    }
+
+    // ── SYNC — live preview ──
+    function syncPhone() {
+        const digits = document.getElementById('in_vendor_phone').value.replace(/\D/g,'');
+        const display = digits ? '+966 ' + digits : '—';
+        document.getElementById('out_vendor_phone').textContent = display;
+    }
+
+    function sync() {
+        const poRaw    = document.getElementById('in_po_num').value.trim();
+        const poNum    = poRaw ? 'P' + String(poRaw).padStart(4,'0') : 'P0001';
+        const vendor   = document.getElementById('in_vendor_name').value;
+        const vDigits  = document.getElementById('in_vendor_phone').value.replace(/\D/g,'');
+        const vPhone   = vDigits ? '+966 ' + vDigits : '—';
+        const buyer    = document.getElementById('in_buyer_name').value;
+        const arrival  = formatDateDisplay(document.getElementById('in_arrival_date').value);
+        const discPerc = parseFloat(document.getElementById('in_disc').value) || 0;
+        const orderDt  = document.getElementById('in_order_date').value;
+
+        document.getElementById('out_po_num').textContent        = '#' + poNum;
+        document.getElementById('out_vendor_name').textContent   = vendor  || '—';
+        document.getElementById('out_vendor_phone').textContent  = vPhone  || '—';
+        document.getElementById('out_buyer_name').textContent    = buyer   || '—';
+        document.getElementById('out_order_date').textContent    = orderDt || '—';
+        document.getElementById('out_arrival_date').textContent  = arrival;
+
+        // Build rows
+        const editors = document.querySelectorAll('.row-editor');
+        let subtotal   = 0;
+        let rowsHtml   = '';
+        const anyDisc  = [...document.querySelectorAll('.r-disc')].some(i => parseFloat(i.value) > 0);
+        document.getElementById('th-disc').style.display = anyDisc ? '' : 'none';
+
+        const descs = [...editors].map(ed => (ed.querySelector('.r-desc').value||'').trim().toLowerCase());
+
+        editors.forEach((ed, idx) => {
+            const id       = ed.id.split('-')[1];
+            const qty      = parseFloat(ed.querySelector('.r-qty').value)   || 0;
+            const price    = parseFloat(ed.querySelector('.r-price').value) || 0;
+            const rowDisc  = parseFloat(ed.querySelector('.r-disc').value)  || 0;
+            const lineAmt  = qty * price * (1 - rowDisc/100);
+            subtotal      += lineAmt;
+
+            const descRaw  = ed.querySelector('.r-desc').value || '';
+            const isDup    = descRaw.trim() !== '' && descs.filter((d,j) => j !== idx && d === descRaw.trim().toLowerCase()).length > 0;
+            ed.classList.toggle('duplicate', isDup);
+
+            const rowCls   = isDup ? ' class="dup-row"' : '';
+            const dupIcon  = isDup ? '<span class="dup-icon">⚠</span>' : '';
+            const discCell = anyDisc ? `<td>${rowDisc > 0 ? rowDisc.toFixed(2)+'%' : '—'}</td>` : '';
+
+            rowsHtml += `<tr${rowCls}>
+                <td>${escHtml(descRaw)}${dupIcon}</td>
+                <td>${String(Math.round(qty)).padStart(2,'0')}</td>
+                <td>${price.toLocaleString(undefined,{minimumFractionDigits:2})} SR</td>
+                ${discCell}
+                <td style="font-weight:700;">${lineAmt.toLocaleString(undefined,{minimumFractionDigits:2})} SR</td>
+            </tr>`;
+        });
+
+        document.getElementById('po-rows').innerHTML = rowsHtml;
+
+        // Totals
+        const vat       = subtotal * 0.15;
+        const totalNoDisc = subtotal + vat;
+        const gDiscAmt  = totalNoDisc * (discPerc / 100);
+        const grand     = totalNoDisc - gDiscAmt;
+        const fmt       = v => v.toLocaleString(undefined, {minimumFractionDigits: 2});
+
+        document.getElementById('out_subtotal').textContent = fmt(subtotal) + ' SR';
+        document.getElementById('out_vat').textContent      = fmt(vat)      + ' SR';
+        document.getElementById('out_grand').textContent    = fmt(grand)    + ' SR';
+
+        const discRow = document.getElementById('disc-row');
+        if (discPerc > 0) {
+            discRow.style.display = 'table-row';
+            document.getElementById('out_disc_lbl').textContent = `Discount (${discPerc}%)`;
+            document.getElementById('out_disc_val').textContent = '-' + fmt(gDiscAmt) + ' SR';
+        } else {
+            discRow.style.display = 'none';
+        }
+    }
+
+    // ── CLEAR ERROR ──
+    function clearError(groupId) {
+        const el = document.getElementById(groupId);
+        if (el) el.classList.remove('field-error');
+    }
+
+    // ── PDF DOWNLOAD ──
+    async function downloadPDF() {
+        // Inline validation — no alert()
+        const vendor = document.getElementById('in_vendor_name').value.trim();
+        const phone  = document.getElementById('in_vendor_phone').value.trim();
+        const buyer  = document.getElementById('in_buyer_name').value.trim();
+        const rows   = document.querySelectorAll('.row-editor');
+        let hasItem  = false;
+        rows.forEach(ed => { if ((ed.querySelector('.r-desc').value||'').trim()) hasItem = true; });
+
+        let valid = true;
+        if (!vendor) { document.getElementById('grp-vendor-name').classList.add('field-error'); document.getElementById('in_vendor_name').focus(); valid = false; }
+        if (!phone)  { document.getElementById('grp-vendor-phone').classList.add('field-error'); if (valid) document.getElementById('in_vendor_phone').focus(); valid = false; }
+        if (!buyer)  { document.getElementById('grp-buyer-name').classList.add('field-error'); if (valid) document.getElementById('in_buyer_name').focus(); valid = false; }
+        if (!valid) return;  // stop here — sidebar stays visible, no hang
+
+        const btn   = document.getElementById('dl-btn');
+        const poNum = 'P' + String((document.getElementById('in_po_num').value||'0001')).padStart(4,'0');
+        const name  = buyer ? `${buyer}_${poNum}_PO` : `${poNum}_PurchaseOrder`;
+
+        btn.textContent = '⏳ Saving…'; btn.disabled = true;
+
+        const ctrl = document.getElementById('controls');
+        const wrap = document.getElementById('page-wrap');
+        const res  = document.getElementById('sidebar-resizer');
+        ctrl.style.display = 'none';
+        res.style.display  = 'none';
+        wrap.style.cssText = 'margin:0;padding:0;zoom:1;display:flex;justify-content:center;';
+
+        await new Promise(r => setTimeout(r, 300));
+        const result = await ipcRenderer.invoke('save-po-pdf', name);
+
+        ctrl.style.display = 'flex';
+        res.style.display  = '';
+        wrap.style.cssText = `margin-left:${document.getElementById('controls').offsetWidth + 20}px;padding:40px 40px 60px;display:flex;justify-content:center;zoom:${zoomLevel};`;
+
+        if (result.success) {
+            // Increment counter in Firebase after successful save
+            await ipcRenderer.invoke('increment-po').catch(() => {});
+            btn.textContent = '✓ PDF Saved!';
+            setTimeout(() => { btn.textContent = '⬇ DOWNLOAD PDF'; btn.disabled = false; }, 2500);
+        } else {
+            btn.textContent = '⬇ DOWNLOAD PDF'; btn.disabled = false;
+        }
+    }
+
+    // ── INIT ──
+    loadLogo();
+    setTodayDate();
+    addRow();
+
+    // Load PO number from Firebase
+    (async () => {
+        try {
+            const res = await ipcRenderer.invoke('get-next-po');
+            if (res && res.success) {
+                const num = String(res.value).padStart(4, '0');
+                document.getElementById('in_po_num').value = num;
+                sync();
+            }
+        } catch(e) {}
+    })();
+</script>
+</body>
+</html>

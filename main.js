@@ -74,6 +74,7 @@ function initAutoUpdater() {
 let mainWindow;
 let contractWindow = null;
 let quotationWindow = null;
+let purchaseWindow = null;
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -163,6 +164,45 @@ ipcMain.handle('save-pdf', async (event, baseName) => {
 });
 
 // ════════════════════════════════════════════
+// ── DELIVERY NOTE IPC HANDLERS ──
+// ════════════════════════════════════════════
+
+// Get current delivery note counter from Firebase
+ipcMain.handle('get-next-dn', async () => {
+    if (!db) return { success: false, reason: 'no-firebase' };
+    try {
+        const snap = await db.ref('delivery_counter').once('value');
+        return { success: true, value: snap.val() || 1 };
+    } catch (err) {
+        return { success: false, reason: err.message };
+    }
+});
+
+// Increment delivery note counter after successful PDF save
+ipcMain.handle('increment-dn', async () => {
+    if (!db) return { success: false, reason: 'no-firebase' };
+    try {
+        const result = await db.ref('delivery_counter').transaction(n => (n || 1) + 1);
+        return { success: true, newValue: result.snapshot.val() };
+    } catch (err) {
+        return { success: false, reason: err.message };
+    }
+});
+
+// Save delivery note record to Firebase
+ipcMain.handle('save-dn-record', async (event, record) => {
+    if (!db) return { success: false, reason: 'no-firebase' };
+    try {
+        const key = record.dnNo.replace(/[.#$[\]]/g, '_');
+        await db.ref('delivery_notes/' + key).set(record);
+        console.log('Delivery note saved to Firebase:', key);
+        return { success: true };
+    } catch (err) {
+        return { success: false, reason: err.message };
+    }
+});
+
+// ════════════════════════════════════════════
 // ── CONTRACT IPC HANDLERS ──
 // ════════════════════════════════════════════
 
@@ -187,8 +227,14 @@ ipcMain.handle('open-contract', async () => {
 });
 
 // ── Open Quotation Window ──
-ipcMain.handle('open-quotation', async () => {
-    if (quotationWindow) { quotationWindow.focus(); return; }
+ipcMain.handle('open-quotation', async (event, mode) => {
+    // mode = 'quotation' or 'delivery'
+    if (quotationWindow) {
+        quotationWindow.focus();
+        // Tell the already-open window to switch mode
+        quotationWindow.webContents.send('set-mode', mode || 'quotation');
+        return;
+    }
     quotationWindow = new BrowserWindow({
         width: 1400,
         height: 900,
@@ -201,7 +247,7 @@ ipcMain.handle('open-quotation', async () => {
             webSecurity: false
         }
     });
-    quotationWindow.loadFile('quotation.html');
+    quotationWindow.loadFile('quotation.html', { query: { mode: mode || 'quotation' } });
     quotationWindow.setMenuBarVisibility(false);
     quotationWindow.on('closed', () => { quotationWindow = null; });
 });
@@ -261,6 +307,76 @@ ipcMain.handle('save-contract-pdf', async (event, baseName) => {
         return { success: true };
     } catch (err) {
         console.error('Contract PDF Error:', err);
+        return { success: false, error: err.message };
+    }
+});
+
+// ════════════════════════════════════════════
+// ── PURCHASE ORDER IPC HANDLERS ──
+// ════════════════════════════════════════════
+
+// Open Purchase Order Window
+ipcMain.handle('open-purchase', async () => {
+    if (purchaseWindow) { purchaseWindow.focus(); return; }
+    purchaseWindow = new BrowserWindow({
+        width: 1400,
+        height: 900,
+        minWidth: 1100,
+        minHeight: 700,
+        title: 'Raha Co. — Purchase Order',
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            webSecurity: false
+        }
+    });
+    purchaseWindow.loadFile('purchaseorder.html');
+    purchaseWindow.setMenuBarVisibility(false);
+    purchaseWindow.on('closed', () => { purchaseWindow = null; });
+});
+
+// Get current PO counter from Firebase
+ipcMain.handle('get-next-po', async () => {
+    if (!db) return { success: false, reason: 'no-firebase' };
+    try {
+        const snap = await db.ref('purchaseorder_counter').once('value');
+        return { success: true, value: snap.val() || 1 };
+    } catch (err) {
+        return { success: false, reason: err.message };
+    }
+});
+
+// Increment PO counter after successful PDF save
+ipcMain.handle('increment-po', async () => {
+    if (!db) return { success: false, reason: 'no-firebase' };
+    try {
+        const result = await db.ref('purchaseorder_counter').transaction(n => (n || 1) + 1);
+        return { success: true, newValue: result.snapshot.val() };
+    } catch (err) {
+        return { success: false, reason: err.message };
+    }
+});
+
+// Save Purchase Order PDF (from purchaseWindow, not mainWindow)
+ipcMain.handle('save-po-pdf', async (event, baseName) => {
+    if (!purchaseWindow) return { success: false };
+    const defaultName = baseName ? `${baseName}.pdf` : 'PurchaseOrder.pdf';
+    const { filePath, canceled } = await dialog.showSaveDialog(purchaseWindow, {
+        title: 'Save Purchase Order As',
+        defaultPath: defaultName,
+        filters: [{ name: 'PDF Files', extensions: ['pdf'] }]
+    });
+    if (canceled || !filePath) return { success: false };
+    try {
+        const pdfBuffer = await purchaseWindow.webContents.printToPDF({
+            printBackground: true, pageSize: 'A4', landscape: false,
+            margins: { marginType: 'custom', top: 0, bottom: 0, left: 0, right: 0 }
+        });
+        fs.writeFileSync(filePath, pdfBuffer);
+        shell.openPath(filePath);
+        return { success: true };
+    } catch (err) {
+        console.error('PO PDF Error:', err);
         return { success: false, error: err.message };
     }
 });

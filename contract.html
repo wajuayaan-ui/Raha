@@ -89,7 +89,7 @@
         .ph1-empty {}
 
         /* ── PAGE 2 HEADER ── */
-        .ph2 { text-align: center; margin-bottom: 0; direction: ltr; }
+        .ph2 { text-align: center; margin-bottom: 0; direction: ltr; display: flex; flex-direction: column; align-items: center; }
         .ph2 img { max-height: 75px; }
         .ph2 .co-name { font-size: 12px; font-weight: 800; color: var(--raha-blue); margin-top: 3px; direction: rtl; }
 
@@ -121,6 +121,7 @@
         .agree-intro {
             text-align: center; font-size: 13px;
             margin: 10px 0 13px 0;
+            font-weight: bold;
         }
 
         .art-title {
@@ -136,14 +137,14 @@
 
         .amount-line {
             font-size: 14px; font-weight: 800;
-            margin: 8px 0; text-align: center;
+            margin: 8px 0; text-align: right;
         }
 
         /* ── SIGNATURE ── */
         .sig-section { margin-top: 22px; }
         .sig-title {
             font-size: 14px; font-weight: 800;
-            text-align: center; margin-bottom: 16px;
+            text-align:right; margin-bottom: 16px;
         }
         .sig-table { width: 100%; border-collapse: collapse; }
         .sig-table td {
@@ -184,14 +185,14 @@
     <div class="ig" id="grp-sn">
         <label>الرقم التسلسلي S/N</label>
         <div class="pfx-wrap">
-            <input type="text" id="in_sn" class="pfx-input" placeholder="001" maxlength="3"
-                   readonly style="background:#f5f5f5;color:#333;cursor:not-allowed;">
+            <input type="text" id="in_sn" class="pfx-input" placeholder="Loading…" maxlength="4"
+                   readonly style="background:#eee;font-weight:700;cursor:default;">
             <span class="pfx-tag">R1S</span>
         </div>
         <div class="fwarn">⚠ الرقم التسلسلي مطلوب</div>
     </div>
 
-    <div class="ig">
+    <div class="ig" id="grp-rep">
         <label>التاريخ</label>
         <input type="text" id="in_date" readonly style="background:#eee;">
     </div>
@@ -220,6 +221,14 @@
                oninput="clearE('grp-address');sync()">
         <div class="fwarn">⚠ العنوان مطلوب</div>
     </div>
+      <div class="ig" id="grp-days">
+        <label>مدة التنفيذ (يوم)</label>
+        <div class="pfx-wrap">
+            <input type="text" id="in_days" class="pfx-input" placeholder="00"
+                   oninput="onDigits(this,3);sync()">
+            <span class="pfx-tag">يوم</span>
+        </div>
+    </div>
 
     <div class="ig" id="grp-amount">
         <label>قيمة العقد – رقم</label>
@@ -235,15 +244,20 @@
         <div class="fwarn">⚠ التفصيل مطلوب</div>
     </div>
 
-    <div class="ig" id="grp-days">
-        <label>مدة التنفيذ (يوم)</label>
-        <div class="pfx-wrap">
-            <input type="text" id="in_days" class="pfx-input" placeholder="00"
-                   oninput="onDigits(this,3);sync()">
-            <span class="pfx-tag">يوم</span>
-        </div>
+    <div class="ig" id="grp-rep">
+        <label>اسم المندوب (الطرف الأول)</label>
+        <select id="in_rep" onchange="syncRep()" style="width:100%;padding:9px;border:1px solid #bcccdc;border-radius:6px;font-family:'Tahoma',Arial,sans-serif;font-size:13px;direction:rtl;text-align:right;background:#fff;">
+            <option value="">-- اختر الاسم --</option>
+            <option value="محمد احمد">محمد احمد</option>
+            <option value="محمد عدنان">محمد عدنان</option>
+            <option value="صهيب علوي">صهيب علوي</option>
+            <option value="سلمان السحيباني">سلمان السحيباني</option>
+            <option value="__other__">أخرى (أدخل الاسم)</option>
+        </select>
+        <input type="text" id="in_rep_custom" placeholder="أدخل الاسم هنا"
+               oninput="syncRep()"
+               style="display:none;width:100%;margin-top:6px;padding:9px;border:1px solid #bcccdc;border-radius:6px;box-sizing:border-box;font-family:'Tahoma',Arial,sans-serif;font-size:13px;direction:rtl;text-align:right;">
     </div>
-
     <button class="dl-btn" id="dl-btn" onclick="downloadPDF()">💾 حفظ العقد (PDF)</button>
 </div>
 
@@ -258,11 +272,11 @@
         <div class="ph1-meta">
             <table>
                 <tr>
-                    <td>:Date</td>
+                    <td>Date:</td>
                     <td id="out_date_p1" style="min-width:80px;">__-__-____</td>
                 </tr>
                 <tr>
-                    <td>:S/N</td>
+                    <td>S/N:</td>
                     <td id="out_sn_p1">R1S____</td>
                 </tr>
             </table>
@@ -296,7 +310,7 @@
 
         <span class="art-title">البند الأول: نطاق العمل</span>
         <p class="bl" style="list-style:none;padding:0;">تلتزم الشركة بتصنيع وتوريد وتركيب المنتجات المتفق عليها حسب الرسومات والمواصفات المعتمدة من العميل قبل بدء التصنيع .</p>
-        <p class="bl" style="list-style:none;padding:0;font-weight:800;">ويعتبر اعتماد العميل للتصميم والمقاسات إقراراً نهائياً لا رجعة فيه.</p>
+        <p class="bl" style="list-style:none;padding:0;">ويعتبر اعتماد العميل للتصميم والمقاسات إقراراً نهائياً لا رجعة فيه.</p>
 
         <span class="art-title">البند الثاني: مدة التنفيذ</span>
         <p>مدة التفنيذ <strong><span id="out_days">__</span> يوم</strong> من تاريخ سداد الدفعة الثانية .</p>
@@ -312,8 +326,8 @@
         <p class="dl">قيمة العقد قابله للتعديل في حال الإضافة والتعديل على التصميم قبل التصنيع.</p>
 
         <span class="art-title">البند الرابع: الضمان</span>
-        <p>.1 تضمن الشركة جودة المواد لمدة ) 10 سنوات ( من تاريخ الاستلام.</p>
-        <p>.2 الضمان لا يشمل بشكل صريح :</p>
+        <p>.1 تضمن الشركة جودة المواد لمدة ( 10 سنوات) من تاريخ الاستلام.</p>
+        <p><strong>2. الضمان لا يشمل بشكل صريح :</strong></p>
         <p class="bl">الإضاءة بكافة أنواعها LED أو غيرها .</p>
         <p class="bl">التلف الناتج عن المياه المباشرة .</p>
         <p class="bl">سوء الاستخدام .</p>
@@ -368,10 +382,10 @@
             <table class="sig-table">
                 <tr>
                     <td class="sig-sep" style="text-align:right;">
-                        <div class="sig-party">الطرف الأول :</div>
-                        <div>شركة راها التجارية</div>
+                        <div class="sig-party">الطرف الأول:</div>
+                        <div><span class="uif">الاسم :</span> <span id="out_rep_name">___________</span></div>
                         <div>التوقيع :</div>
-                        <div>التاريخ:</div>
+                        <div>التاريخ: <span id="out_date_rep">__-__-____</span></div>
                     </td>
                     <td style="text-align:right;">
                         <div class="sig-party">الطرف الثاني – العميل :</div>
@@ -397,18 +411,6 @@
     const { ipcRenderer } = require('electron');
     const path = require('path');
     const fs   = require('fs');
-
-    // ── FIREBASE: fetch next contract S/N ──
-    async function fetchNextSN() {
-        try {
-            const result = await ipcRenderer.invoke('get-next-sn');
-            if (result.success) {
-                const padded = String(result.value).padStart(3, '0');
-                document.getElementById('in_sn').value = padded;
-                sync();
-            }
-        } catch(e) { /* silent fail — manual entry still works */ }
-    }
 
     // ── DIGIT-ONLY INPUT ──
     function onDigits(el, max) {
@@ -446,9 +448,10 @@
         const m = String(t.getMonth()+1).padStart(2,'0');
         const y = t.getFullYear();
         const fmt = `${d}/${m}/${y}`;
-        document.getElementById('in_date').value       = fmt;
-        document.getElementById('out_date_p1').innerText = fmt;
+        document.getElementById('in_date').value        = fmt;
+        document.getElementById('out_date_p1').innerText  = fmt;
         document.getElementById('out_date_sig').innerText = fmt;
+        document.getElementById('out_date_rep').innerText = fmt;
     }
 
     // ── SYNC ──
@@ -462,7 +465,7 @@
         const snSf    = document.getElementById('in_sn').value.trim();
         const sn      = 'R1S' + (snSf || '____');
         const dateVal = document.getElementById('in_date').value;
-        const days    = document.getElementById('in_days').value.trim() || '60';
+        const days    = document.getElementById('in_days').value.trim() || '00';
 
         document.getElementById('out_sn_p1').innerText      = sn;
         document.getElementById('out_date_p1').innerText    = dateVal;
@@ -473,6 +476,7 @@
         document.getElementById('out_atext').innerText     = atext   || '__________';
         document.getElementById('out_client_sig').innerText = client || '___________';
         document.getElementById('out_date_sig').innerText  = dateVal;
+        document.getElementById('out_date_rep').innerText  = dateVal;
         document.getElementById('out_days').innerText      = days;
     }
 
@@ -485,6 +489,7 @@
             { id:'in_address',gid:'grp-address',fn: v => v.trim().length > 0 },
             { id:'in_amount', gid:'grp-amount', fn: v => v.trim().length > 0 },
             { id:'in_atext',  gid:'grp-atext',  fn: v => v.trim().length > 0 },
+            { id:'in_days',    gid:'grp-days',    fn: v => v.trim().length > 0 },
         ];
         for (const r of rules) {
             const val = document.getElementById(r.id).value;
@@ -524,29 +529,13 @@
         document.getElementById('page-wrap').style.marginRight = '340px';
 
         if (result.success) {
+            await ipcRenderer.invoke('increment-sn').catch(() => {});
             btn.innerText = '✓ تم الحفظ!';
             setTimeout(() => {
                 btn.innerText = '💾 حفظ العقد (PDF)';
                 btn.style.opacity = '1';
                 btn.disabled = false;
             }, 2500);
-            // ── Firebase: increment contract counter ──
-            ipcRenderer.invoke('increment-sn').catch(() => {});
-            // ── Firebase: save contract record ──
-            try {
-                const record = {
-                    sn          : sn,
-                    clientName  : client,
-                    phone       : '05' + document.getElementById('in_phone').value.trim(),
-                    address     : document.getElementById('in_address').value.trim(),
-                    amount      : document.getElementById('in_amount').value.trim(),
-                    amountText  : document.getElementById('in_atext').value.trim(),
-                    days        : document.getElementById('in_days').value.trim() || '60',
-                    date        : document.getElementById('in_date').value,
-                    savedAt     : new Date().toISOString()
-                };
-                ipcRenderer.invoke('save-contract-record', record).catch(() => {});
-            } catch(e) { /* silent fail */ }
         } else {
             btn.innerText = '💾 حفظ العقد (PDF)';
             btn.style.opacity = '1';
@@ -554,10 +543,33 @@
         }
     }
 
+    function syncRep() {
+        const sel    = document.getElementById('in_rep').value;
+        const custom = document.getElementById('in_rep_custom');
+        if (sel === '__other__') {
+            custom.style.display = 'block';
+            const customName = custom.value.trim();
+            document.getElementById('out_rep_name').innerText = customName || '___________';
+        } else {
+            custom.style.display = 'none';
+            document.getElementById('out_rep_name').innerText = sel || '___________';
+        }
+    }
+
     loadLogo();
     setDate();
     sync();
-    fetchNextSN();   // auto-fill S/N from Firebase
+
+    // Auto-load S/N from Firebase
+    (async () => {
+        try {
+            const res = await ipcRenderer.invoke('get-next-sn');
+            if (res && res.success) {
+                document.getElementById('in_sn').value = String(res.value).padStart(4, '0');
+                sync();
+            }
+        } catch(e) {}
+    })();
 </script>
 </body>
 </html>

@@ -205,8 +205,8 @@
     <div class="input-group">
         <label id="lbl-att">Att :</label>
         <div style="display:flex;align-items:stretch;">
-            <span style="padding:10px 8px;background:#eee;border:1px solid #bcccdc;border-right:none;border-radius:6px 0 0 6px;font-size:13px;font-weight:700;color:#102a43;white-space:nowrap;display:flex;align-items:center;">1STR2026</span>
-            <input type="text" id="in_att_suffix" maxlength="4" readonly style="border-radius:0 6px 6px 0;flex:1;min-width:0;background:#f5f5f5;color:#333;cursor:not-allowed;">
+            <span id="att_prefix_display" style="padding:10px 8px;background:#eee;border:1px solid #bcccdc;border-right:none;border-radius:6px 0 0 6px;font-size:13px;font-weight:700;color:#102a43;white-space:nowrap;display:flex;align-items:center;">R1Q2026</span>
+            <input type="text" id="in_att_suffix" placeholder="322" maxlength="4" readonly style="border-radius:0 6px 6px 0;flex:1;min-width:0;background:#f5f5f5;color:#333;cursor:not-allowed;">
         </div>
     </div>
     <div class="input-group">
@@ -455,7 +455,7 @@
         }
     };
 
-    // ── FIREBASE: fetch next ATT number and fill the field ──
+    // ── FIREBASE: fetch next ATT number (Quotation) ──
     async function fetchNextAtt() {
         try {
             const result = await ipcRenderer.invoke('get-next-att');
@@ -463,10 +463,19 @@
                 document.getElementById('in_att_suffix').value = String(result.value);
                 sync();
             }
-            // If Firebase not connected, field stays blank — user types manually
-        } catch (e) {
-            // Silent fail — manual entry still works
-        }
+        } catch (e) { /* silent fail */ }
+    }
+
+    // ── FIREBASE: fetch next DN number (Delivery Note) ──
+    async function fetchNextDN() {
+        try {
+            const result = await ipcRenderer.invoke('get-next-dn');
+            if (result.success) {
+                const padded = String(result.value).padStart(3, '0');
+                document.getElementById('in_att_suffix').value = padded;
+                sync();
+            }
+        } catch (e) { /* silent fail */ }
     }
 
     // ── 1) REFRESH / NEW QUOTATION — hang-free ──
@@ -504,6 +513,15 @@
     let isDeliveryNote = false;
     function toggleDeliveryNote() {
         isDeliveryNote = !isDeliveryNote;
+        // Switch prefix label and fetch correct counter
+        const prefixEl = document.getElementById('att_prefix_display');
+        if (isDeliveryNote) {
+            prefixEl.innerText = 'R1D2026';
+            fetchNextDN();
+        } else {
+            prefixEl.innerText = 'R1Q2026';
+            fetchNextAtt();
+        }
         const t     = T[currentLang];
         const sheet = document.getElementById('quotation-sheet');
         const dnBtn = document.getElementById('dn-btn');
@@ -704,7 +722,7 @@
     function sync() {
         const cust    = document.getElementById('in_cust').value;
         const suffix  = document.getElementById('in_att_suffix').value;
-        const attFull = '1STR2026' + suffix;
+        const attFull = (isDeliveryNote ? 'R1D2026' : 'R1Q2026') + suffix;
         const from    = document.getElementById('in_from').value;
         const vno     = document.getElementById('in_vno').value;
         const dateVal = document.getElementById('in_date').value;
@@ -843,7 +861,7 @@
         return valid;
     }
 
-    // ── PDF DOWNLOAD — filename: CustomerName_1STR2026XXX ──
+    // ── PDF DOWNLOAD — filename: CustomerName_R1Q2026XXX ──
     async function downloadPDF() {
         if (!validateForm()) return;   // Block if mandatory fields missing
 
@@ -852,7 +870,7 @@
         const isAr        = currentLang === 'ar';
         const custName    = document.getElementById('in_cust').value.trim();
         const attSuffix   = document.getElementById('in_att_suffix').value.trim();
-        const attFull     = '1STR2026' + attSuffix;
+        const attFull     = (isDeliveryNote ? 'R1D2026' : 'R1Q2026') + attSuffix;
         const docType     = isDeliveryNote ? 'DeliveryNote' : 'Quotation';
         const baseName    = custName && attSuffix ? `${custName}_${attFull}_${docType}` : (custName || attFull || docType);
 
@@ -875,22 +893,38 @@
         if (result.success) {
             btn.innerText = t.dlBtnDone;
             setTimeout(() => { btn.innerText = t.dlBtn; btn.style.opacity='1'; btn.disabled=false; }, 2500);
-            // ── Firebase: increment counter so next quotation gets the next number ──
-            ipcRenderer.invoke('increment-att').catch(() => {});
-
-            // ── Firebase: save quotation record ──
-            try {
-                const qRecord = {
-                    customerName : document.getElementById('in_cust').value.trim(),
-                    mobile       : '05' + (document.getElementById('in_mobile_suffix').value.trim()),
-                    attNo        : attFull,
-                    date         : document.getElementById('out_date') ? document.getElementById('out_date').innerText : new Date().toLocaleDateString(),
-                    from         : document.getElementById('in_from').value,
-                    totalVAT     : document.getElementById('out_grand').innerText,
-                    savedAt      : new Date().toISOString()
-                };
-                ipcRenderer.invoke('save-quotation-record', qRecord).catch(() => {});
-            } catch(e) { /* silent fail — never block the user */ }
+            if (isDeliveryNote) {
+                // ── Firebase: increment DN counter ──
+                ipcRenderer.invoke('increment-dn').catch(() => {});
+                // ── Firebase: save delivery note record ──
+                try {
+                    const dnRecord = {
+                        dnNo         : attFull,
+                        customerName : document.getElementById('in_cust').value.trim(),
+                        mobile       : '05' + (document.getElementById('in_mobile_suffix').value.trim()),
+                        date         : document.getElementById('out_date') ? document.getElementById('out_date').innerText : new Date().toLocaleDateString(),
+                        from         : document.getElementById('in_from').value,
+                        savedAt      : new Date().toISOString()
+                    };
+                    ipcRenderer.invoke('save-dn-record', dnRecord).catch(() => {});
+                } catch(e) { /* silent fail */ }
+            } else {
+                // ── Firebase: increment quotation counter ──
+                ipcRenderer.invoke('increment-att').catch(() => {});
+                // ── Firebase: save quotation record ──
+                try {
+                    const qRecord = {
+                        customerName : document.getElementById('in_cust').value.trim(),
+                        mobile       : '05' + (document.getElementById('in_mobile_suffix').value.trim()),
+                        attNo        : attFull,
+                        date         : document.getElementById('out_date') ? document.getElementById('out_date').innerText : new Date().toLocaleDateString(),
+                        from         : document.getElementById('in_from').value,
+                        totalVAT     : document.getElementById('out_grand').innerText,
+                        savedAt      : new Date().toISOString()
+                    };
+                    ipcRenderer.invoke('save-quotation-record', qRecord).catch(() => {});
+                } catch(e) { /* silent fail */ }
+            }
         } else {
             btn.innerText = t.dlBtn;
             btn.style.opacity = '1';
@@ -995,6 +1029,13 @@ Click below to restart and apply the update.`;
     // Read language set by front page
     const savedLang = localStorage.getItem('rahaLang') || 'en';
     setLang(savedLang);
+
+    // Read mode set by front page — auto-switch to delivery note if needed
+    const savedMode = localStorage.getItem('rahaMode') || 'quotation';
+    if (savedMode === 'delivery' && !isDeliveryNote) {
+        toggleDeliveryNote();
+    }
+    localStorage.removeItem('rahaMode');  // clear after reading so re-open defaults to quotation
 </script>
 </body>
 </html>
