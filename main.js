@@ -150,7 +150,8 @@ ipcMain.handle('save-pdf', async (event, baseName) => {
     });
     if (canceled || !filePath) return { success: false };
     try {
-        const pdfBuffer = await mainWindow.webContents.printToPDF({
+        const targetWindow = quotationWindow || mainWindow;
+        const pdfBuffer = await targetWindow.webContents.printToPDF({
             printBackground: true, pageSize: 'A4', landscape: false,
             margins: { marginType: 'custom', top: 0, bottom: 0, left: 0, right: 0 }
         });
