@@ -17,15 +17,69 @@
 
         /* SIDEBAR */
         #controls {
-            width: 380px; position: fixed; left: 0; top: 0; bottom: 0;
-            background: #ffffff; padding: 25px; border-right: 1px solid #d9e2ec;
+            width: 320px; position: fixed; left: 0; top: 0; bottom: 0;
+            background: #ffffff; padding: 0; border-right: 1px solid #d9e2ec;
             overflow-y: auto; z-index: 1000;
         }
         body.arabic #controls { left: auto; right: 0; border-right: none; border-left: 1px solid #d9e2ec; direction: rtl; }
 
-        .input-group { margin-bottom: 15px; }
-        label { display: block; font-size: 11px; font-weight: 600; margin-bottom: 5px; text-transform: uppercase; color: #486581; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #bcccdc; border-radius: 6px; box-sizing: border-box; }
+        /* SIDEBAR HEADER CARD */
+        .sidebar-header-card {
+            background: var(--raha-blue);
+            padding: 20px 20px 16px;
+            border-radius: 0 0 16px 16px;
+            margin-bottom: 0;
+        }
+        .sidebar-header-card h2 {
+            color: white; margin: 0 0 3px 0; font-size: 18px; font-weight: 800;
+        }
+        .sidebar-header-card .subtitle {
+            color: rgba(255,255,255,0.6); font-size: 11px; margin-bottom: 14px;
+        }
+        .zoom-row {
+            display: flex; align-items: center; gap: 6px;
+        }
+        .zoom-btn {
+            width: 34px; height: 34px; border-radius: 8px;
+            background: rgba(255,255,255,0.15); border: none;
+            color: white; font-size: 18px; font-weight: bold;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: background 0.15s;
+        }
+        .zoom-btn:hover { background: rgba(255,255,255,0.28); }
+        #zoom-display {
+            flex: 1; text-align: center; font-size: 13px; font-weight: 700;
+            color: white; background: rgba(255,255,255,0.15);
+            padding: 7px; border-radius: 8px; border: none;
+        }
+
+        /* SIDEBAR BODY */
+        .sidebar-body { padding: 16px 18px; }
+
+        .input-group { margin-bottom: 13px; }
+        label {
+            display: flex; align-items: center; gap: 5px;
+            font-size: 10px; font-weight: 700; margin-bottom: 5px;
+            text-transform: uppercase; letter-spacing: 0.5px; color: #627d98;
+        }
+        label svg { flex-shrink: 0; }
+        input, select {
+            width: 100%; padding: 9px 11px; border: 1px solid #d9e2ec;
+            border-radius: 8px; box-sizing: border-box; font-size: 13px;
+            color: #102a43; background: #fff; transition: border-color 0.15s;
+        }
+        input:focus, select:focus { outline: none; border-color: #102a43; }
+        input[readonly] { background: #f8fafc; color: #627d98; }
+
+        /* TAB BAR */
+        .tab-bar {
+            display: flex; margin: 0 18px 14px; border-radius: 10px;
+            overflow: hidden; border: 1px solid #d9e2ec; background: #f0f4f8;
+        }
+        .tab-bar button {
+            flex: 1; padding: 9px; border: none; cursor: pointer;
+            font-weight: 700; font-size: 11px; transition: all 0.2s;
+        }
 
         .lang-btn {
             width: 100%; padding: 10px; margin-bottom: 20px;
@@ -33,30 +87,81 @@
             border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold;
         }
 
-        .row-editor { background: #f0f4f8; padding: 15px; border-radius: 8px; border: 1px solid #d9e2ec; margin-bottom: 15px; position: relative; }
-        .delete-row { position: absolute; right: 10px; top: 8px; background: var(--danger); color: white; border: none; border-radius: 4px; cursor: pointer; padding: 5px 10px; font-weight: bold; font-size: 8px; }
+        .row-editor {
+            background: #f8fafc; padding: 13px; border-radius: 10px;
+            border: 1px solid #d9e2ec; margin-bottom: 12px; position: relative;
+        }
+        .delete-row {
+            position: absolute; right: 10px; top: 8px;
+            background: var(--danger); color: white; border: none;
+            border-radius: 4px; cursor: pointer; padding: 4px 9px;
+            font-weight: bold; font-size: 8px;
+        }
         body.arabic .delete-row { right: auto; left: 10px; }
 
-        .paste-zone { background: #fff; border: 2px dashed #486581; text-align: center; padding: 4px 8px; font-size: 10px; cursor: pointer; color: #486581; border-radius: 4px; min-height: 0; line-height: 1.8; }
+        .paste-zone {
+            background: #fff; border: 2px dashed #bcccdc;
+            text-align: center; padding: 6px 8px; font-size: 10px;
+            cursor: pointer; color: #627d98; border-radius: 8px;
+            min-height: 0; line-height: 1.8; display: flex;
+            align-items: center; justify-content: center; gap: 6px;
+        }
 
-        .qty-container { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0; }
-        .qty-circle { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--raha-blue); display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; background: white; transition: 0.2s; font-weight: bold; }
-        .qty-circle.active { background: var(--raha-blue); color: white; }
-        .qty-custom-btn { padding: 2px 10px; border-radius: 15px; border: 1px solid var(--raha-blue); font-size: 11px; cursor: pointer; background: white; font-weight: bold; }
+        .qty-container { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0; }
+        .qty-circle {
+            width: 30px; height: 30px; border-radius: 50%;
+            border: 1.5px solid #d9e2ec; display: flex; align-items: center;
+            justify-content: center; font-size: 12px; cursor: pointer;
+            background: white; transition: 0.15s; font-weight: 700; color: #486581;
+        }
+        .qty-circle.active { background: var(--raha-blue); color: white; border-color: var(--raha-blue); }
+        .qty-circle:hover:not(.active) { border-color: var(--raha-blue); color: var(--raha-blue); }
+        .qty-custom-btn {
+            padding: 2px 12px; border-radius: 15px;
+            border: 1.5px solid #d9e2ec; font-size: 11px;
+            cursor: pointer; background: white; font-weight: 700; color: #486581;
+        }
+        .qty-custom-btn:hover { border-color: var(--raha-blue); color: var(--raha-blue); }
 
-        .add-btn { background: #486581; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; font-size: 14px; }
-        .save-pdf-btn { background: var(--success); color: white; padding: 15px; border: none; border-radius: 6px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 20px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .add-btn {
+            background: #f0f4f8; color: var(--raha-blue); padding: 11px;
+            border: 2px dashed #bcccdc; border-radius: 8px; cursor: pointer;
+            width: 100%; font-weight: 700; margin-top: 8px; font-size: 13px;
+            transition: all 0.15s;
+        }
+        .add-btn:hover { background: #e8eef4; border-color: var(--raha-blue); }
+
+        .save-pdf-btn {
+            background: var(--raha-blue); color: white; padding: 13px;
+            border: none; border-radius: 10px; cursor: pointer; width: 100%;
+            font-size: 14px; margin-top: 14px; font-weight: 800;
+            box-shadow: 0 4px 12px rgba(16,42,67,0.25); transition: opacity 0.2s;
+            letter-spacing: 0.3px;
+        }
+        .save-pdf-btn:hover { opacity: 0.88; }
+        .save-pdf-btn.secondary {
+            background: #486581; box-shadow: none; margin-top: 8px;
+        }
+
+        /* SECTION SEPARATOR */
+        .sidebar-sep {
+            border: none; border-top: 1px solid #f0f4f8; margin: 14px 0;
+        }
+        .sidebar-section-label {
+            font-size: 10px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.8px; color: #9fb3c8; margin-bottom: 10px;
+        }
 
         /* QUOTATION SHEET */
-        #page-wrap { margin-left: 400px; padding: 40px; display: flex; justify-content: center; }
-        body.arabic #page-wrap { margin-left: 0; margin-right: 400px; }
+        #page-wrap { margin-left: 340px; padding: 40px; display: flex; justify-content: center; }
+        body.arabic #page-wrap { margin-left: 0; margin-right: 340px; }
 
         .invoice-sheet { width: 210mm; min-height: 296mm; background: white; padding: 15mm; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 8px solid var(--raha-blue); box-sizing: border-box; }
 
         .items-table tr { page-break-inside: avoid; }
 
         .header-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        .vat-badge { display: inline-block; background: var(--highlight); padding: 6px 15px; border-radius: 4px; font-size: 13px; font-weight: 700; margin: 10px 0; }
+        .vat-badge { display: inline-block; background: var(--raha-blue); color: white; padding: 5px 13px; border-radius: 4px; font-size: 12px; font-weight: 700; margin: 8px 0; }
 
         .meta-container { border: 1.5px solid var(--border-color); border-radius: 4px; overflow: hidden; }
         .meta-table { width: 100%; border-collapse: collapse; }
@@ -64,7 +169,7 @@
         .label-cell { background: #f0f4f8; font-weight: bold; width: 15%; white-space: nowrap; }
 
         .bold-print { font-weight: 800 !important; font-size: 13px; }
-        .intro-text { font-size: 13px; text-decoration: underline; margin: 20px 0; font-weight: 600; color: var(--raha-blue); }
+        .intro-text { font-size: 13px; margin: 18px 0; font-weight: 500; color: #486581; }
 
         .items-table { width: 100%; border-collapse: collapse; margin-top: 5px; table-layout: fixed; }
         .items-table th { background: var(--raha-blue); color: white; font-size: 10px; padding: 8px; text-transform: uppercase; }
@@ -76,29 +181,33 @@
         .total-lbl { width: 60%; padding: 8px; text-align: right; font-weight: bold; background: #f8f9fa; border-right: 1px solid var(--border-color); }
         body.arabic .total-lbl { text-align: left; border-right: none; border-left: 1px solid var(--border-color); }
         .total-val { width: 40%; padding: 8px; text-align: right; background: #fff; font-weight: 700; }
-        .grand-total { background: var(--highlight) !important; font-size: 13px; }
+        .grand-total-line { background: var(--raha-blue) !important; }
+        .grand-total-line .total-lbl { background: var(--raha-blue) !important; color: white !important; border-color: #1e3d57 !important; }
+        .grand-total-line .total-val { background: var(--raha-blue) !important; color: white !important; font-size: 13px; font-weight: 800; }
 
+        /* Terms with icons */
         .terms-section { margin-top: 30px; font-size: 12px; color: #334e68; }
         .sheet-footer { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #888; margin-top: 30px; padding-top: 10px; border-top: 1px solid #eee; }
         #disc-row { display: none; }
-        .terms-title { font-weight: 800; text-decoration: underline; margin-bottom: 8px; color: var(--raha-blue); font-size: 13px; }
-        .terms-grid { display: grid; grid-template-columns: 130px 1fr; row-gap: 4px; }
-        .terms-label { font-weight: 700; }
+        .terms-title { font-weight: 800; margin-bottom: 10px; color: var(--raha-blue); font-size: 13px; border-bottom: 2px solid var(--raha-blue); display: inline-block; padding-bottom: 2px; }
+        .terms-grid { display: grid; grid-template-columns: auto 1fr; row-gap: 8px; column-gap: 10px; align-items: center; }
+        .terms-label { font-weight: 700; display: flex; align-items: center; gap: 7px; }
+        .terms-icon { font-size: 14px; }
 
         /* SIDEBAR RESIZE HANDLE */
         #resize-handle {
-            position: fixed; left: 380px; top: 0; bottom: 0; width: 5px;
+            position: fixed; left: 320px; top: 0; bottom: 0; width: 5px;
             cursor: col-resize; z-index: 1001; background: transparent;
             transition: background 0.2s;
         }
         #resize-handle:hover, #resize-handle.dragging { background: var(--raha-blue); }
-        body.arabic #resize-handle { left: auto; right: 380px; cursor: col-resize; }
+        body.arabic #resize-handle { left: auto; right: 320px; cursor: col-resize; }
 
         /* DOCUMENT TITLE (centered with lines) */
         .doc-title {
             display: flex; align-items: center; text-align: center;
             margin: 18px 0 14px 0; font-size: 15px; font-weight: 800;
-            color: var(--raha-blue); letter-spacing: 1px;
+            color: var(--raha-blue); letter-spacing: 2px;
         }
         .doc-title::before, .doc-title::after {
             content: ''; flex: 1; border-bottom: 1.5px solid var(--raha-blue);
@@ -111,9 +220,7 @@
         .field-warn { font-size: 10px; color: #d32f2f; font-weight: 700; margin-top: 3px; display: none; }
         .field-error .field-warn { display: block; }
 
-        .dn-mode .price-col { display: none !important; }
-        .dn-mode .total-col { display: none !important; }
-        .dn-mode #totals-wrap { display: none !important; }
+        /* quotation.html: dn-mode not used */
 
 
         /* ── AUTO-UPDATE POPUP ── */
@@ -193,24 +300,54 @@
 
 <!-- SIDEBAR -->
 <div id="controls">
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:15px;">
-        <button onclick="zoomOut()" style="flex:1;padding:7px;background:#f0f4f8;border:1px solid #bcccdc;border-radius:6px;font-size:18px;font-weight:bold;cursor:pointer;color:#102a43;">−</button>
-        <span id="zoom-display" style="flex:2;text-align:center;font-size:12px;font-weight:700;color:#486581;background:#f0f4f8;padding:7px;border-radius:6px;border:1px solid #bcccdc;">100%</span>
-        <button onclick="zoomIn()" style="flex:1;padding:7px;background:#f0f4f8;border:1px solid #bcccdc;border-radius:6px;font-size:18px;font-weight:bold;cursor:pointer;color:#102a43;">+</button>
+    <!-- HEADER CARD -->
+    <div class="sidebar-header-card">
+        <h2 id="sidebar-title">Quotation Editor</h2>
+        <div class="subtitle">Create and customize your quotation</div>
+        <div class="zoom-row">
+            <button class="zoom-btn" onclick="zoomOut()">−</button>
+            <span id="zoom-display">100%</span>
+            <button class="zoom-btn" onclick="zoomIn()">+</button>
+        </div>
     </div>
-    <h2 style="margin-top:0;" id="sidebar-title">Quotation Editor</h2>
 
-    <div class="input-group" id="grp-cust"><label id="lbl-to">To :</label><input type="text" id="in_cust" placeholder="Customer Name" oninput="clearError('grp-cust');sync()"><div class="field-warn" id="warn-cust">⚠ Customer name is required</div></div>
-    <div class="input-group"><label id="lbl-date">Date :</label><input type="text" id="in_date" readonly style="background:#eee;"></div>
+    <!-- TAB BAR -->
+    <div class="tab-bar" style="margin-top:14px;">
+        <button id="tab-editor" onclick="switchTab('editor')" style="background:#102a43;color:white;border-radius:9px 0 0 9px;">Editor</button>
+        <button id="tab-history" onclick="switchTab('history')" style="background:#f0f4f8;color:#486581;border-radius:0 9px 9px 0;">📋 History</button>
+    </div>
+
+    <div id="panel-editor" class="sidebar-body">
+    <div class="input-group" id="grp-cust">
+        <label id="lbl-to">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            <span class="lbl-text">To</span>
+        </label>
+        <input type="text" id="in_cust" placeholder="Customer Name" oninput="clearError('grp-cust');sync()">
+        <div class="field-warn" id="warn-cust">⚠ Customer name is required</div>
+    </div>
     <div class="input-group">
-        <label id="lbl-att">Att :</label>
-        <div style="display:flex;align-items:stretch;">
-            <span id="att_prefix_display" style="padding:10px 8px;background:#eee;border:1px solid #bcccdc;border-right:none;border-radius:6px 0 0 6px;font-size:13px;font-weight:700;color:#102a43;white-space:nowrap;display:flex;align-items:center;">R1Q2026</span>
-            <input type="text" id="in_att_suffix" placeholder="322" maxlength="4" readonly style="border-radius:0 6px 6px 0;flex:1;min-width:0;background:#f5f5f5;color:#333;cursor:not-allowed;">
+        <label id="lbl-date">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <span class="lbl-text">Date</span>
+        </label>
+        <input type="text" id="in_date" readonly>
+    </div>
+    <div class="input-group">
+        <label id="lbl-att">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 7h10M7 12h10M7 17h6"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+            <span class="lbl-text">Att / Ref No.</span>
+        </label>
+        <div style="display:flex;align-items:stretch;gap:0;">
+            <span id="att_prefix_display" style="padding:9px 10px;background:#f0f4f8;border:1px solid #d9e2ec;border-right:none;border-radius:8px 0 0 8px;font-size:12px;font-weight:800;color:#102a43;white-space:nowrap;display:flex;align-items:center;letter-spacing:0.5px;">R1Q2026</span>
+            <input type="text" id="in_att_suffix" placeholder="⏳" maxlength="6" readonly style="border-radius:0 8px 8px 0;flex:1;min-width:0;background:#f8fafc;color:#627d98;cursor:not-allowed;border-left:none;">
         </div>
     </div>
     <div class="input-group">
-        <label id="lbl-from">From :</label>
+        <label id="lbl-from">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            <span class="lbl-text">From</span>
+        </label>
         <select id="in_from" onchange="sync()">
             <option value="M. Ahmad">M. Ahmad</option>
             <option value="M. Adnan">M. Adnan</option>
@@ -218,23 +355,61 @@
             <option value="Salman">Salman</option>
         </select>
     </div>
-    <div class="input-group"><label id="lbl-vno">Customer VAT No.</label><input type="text" id="in_vno" oninput="sync()"></div>
+    <div class="input-group">
+        <label id="lbl-vno">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+            <span class="lbl-text">Customer VAT No.</span>
+        </label>
+        <input type="text" id="in_vno" placeholder="Enter Customer VAT No." oninput="sync()">
+    </div>
     <div class="input-group" id="grp-mobile">
-        <label id="lbl-mobile">No. (Mobile)</label>
-        <div style="display:flex;align-items:stretch;">
-            <span style="padding:10px 8px;background:#eee;border:1px solid #bcccdc;border-right:none;border-radius:6px 0 0 6px;font-size:13px;font-weight:700;color:#102a43;white-space:nowrap;display:flex;align-items:center;">05</span>
-            <input type="text" id="in_mobile_suffix" class="prefix-input" placeholder="XXXXXXXX" maxlength="8" oninput="onMobileInput(this);clearError('grp-mobile');sync()" style="border-radius:0 6px 6px 0;flex:1;min-width:0;" inputmode="numeric">
+        <label id="lbl-mobile">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="7" y="2" width="10" height="20" rx="2"/><circle cx="12" cy="18" r="1" fill="currentColor"/></svg>
+            <span class="lbl-text">No. (Mobile)</span>
+        </label>
+        <div style="display:flex;align-items:stretch;gap:0;">
+            <span style="padding:9px 10px;background:#f0f4f8;border:1px solid #d9e2ec;border-right:none;border-radius:8px 0 0 8px;font-size:13px;font-weight:800;color:#102a43;white-space:nowrap;display:flex;align-items:center;">05</span>
+            <input type="text" id="in_mobile_suffix" class="prefix-input" placeholder="XXXXXXXX" maxlength="8" oninput="onMobileInput(this);clearError('grp-mobile');sync()" style="border-radius:0 8px 8px 0;flex:1;min-width:0;border-left:none;" inputmode="numeric">
         </div>
         <div class="field-warn" id="warn-mobile">⚠ Valid 10-digit mobile starting with 05 is required</div>
     </div>
-    <div class="input-group"><label id="lbl-disc">Discount (%)</label><input type="number" id="in_disc" value="0" oninput="sync()"></div>
+    <div class="input-group">
+        <label id="lbl-disc">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 5 5 19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+            <span class="lbl-text">Discount (%)</span>
+        </label>
+        <div style="display:flex;align-items:stretch;gap:0;">
+            <span style="padding:9px 10px;background:#f0f4f8;border:1px solid #d9e2ec;border-right:none;border-radius:8px 0 0 8px;font-size:13px;font-weight:800;color:#102a43;display:flex;align-items:center;">%</span>
+            <input type="number" id="in_disc" value="0" oninput="sync()" style="border-radius:0 8px 8px 0;flex:1;min-width:0;border-left:none;">
+        </div>
+    </div>
 
-    <hr style="margin:20px 0; border:0.5px solid #eee;">
+    <hr class="sidebar-sep">
+    <div class="sidebar-section-label">Products</div>
     <div id="row-inputs"></div>
 
     <button class="add-btn" id="add-product-btn" onclick="addRow()">+ Add Product</button>
     <button class="save-pdf-btn" id="dl-btn" onclick="downloadPDF()">DOWNLOAD QUOTATION (PDF)</button>
-</div>
+    <button class="save-pdf-btn secondary" id="new-btn" onclick="newQuotation()">📄 New Quotation</button>
+    <div id="offline-bar" style="display:none;margin-top:10px;padding:8px 12px;background:#fff3cd;border:1px solid #ffc107;border-radius:6px;font-size:11px;font-weight:700;color:#856404;text-align:center;">⚠ Firebase offline — local save only</div>
+    </div><!-- /panel-editor -->
+
+    <div id="panel-history" style="display:none;flex-direction:column;flex:1;min-height:0;padding:0 18px 16px;">
+        <input id="hist-search" type="text" placeholder="Search..." oninput="debouncedHistSearch()"
+            style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #d9e2ec;border-radius:8px;font-size:12px;margin-bottom:8px;direction:ltr;">
+        <div style="overflow-y:auto;flex:1;border:1px solid #d9e2ec;border-radius:8px;">
+            <table style="width:100%;border-collapse:collapse;direction:ltr;">
+                <thead style="position:sticky;top:0;background:#f0f4f8;z-index:1;">
+                    <tr><th style="padding:8px 10px;text-align:left;font-weight:800;border-bottom:2px solid #d9e2ec;white-space:nowrap;font-size:11px;">Ref #</th><th style="padding:8px 10px;text-align:left;font-weight:800;border-bottom:2px solid #d9e2ec;white-space:nowrap;font-size:11px;">Customer</th><th style="padding:8px 10px;text-align:left;font-weight:800;border-bottom:2px solid #d9e2ec;white-space:nowrap;font-size:11px;">Date</th><th style="padding:8px 10px;text-align:left;font-weight:800;border-bottom:2px solid #d9e2ec;white-space:nowrap;font-size:11px;">Total+VAT</th><th style="padding:8px 10px;text-align:left;font-weight:800;border-bottom:2px solid #d9e2ec;white-space:nowrap;font-size:11px;">Saved</th></tr>
+                </thead>
+                <tbody id="hist-tbody">
+                    <tr><td colspan="5" style="padding:14px;text-align:center;color:#888;font-size:11px;">No records</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p style="font-size:10px;color:#aaa;margin:5px 0 0;text-align:center;">Last 200 · newest first</p>
+    </div>
+</div><!-- /controls -->
 
 <!-- AUTO-UPDATE POPUP -->
 <div id="update-overlay">
@@ -368,17 +543,17 @@
         <div class="total-line"><div class="total-lbl" id="lbl-subtotal">Subtotal (SR)</div><div class="total-val" id="out_subtotal">0.00</div></div>
         <div class="total-line"><div class="total-lbl" id="lbl-vat">15% VAT (SR)</div><div class="total-val" id="out_vat">0.00</div></div>
         <div class="total-line" style="color:var(--danger)" id="disc-row"><div class="total-lbl" id="lbl-disc-line">Discount (0%)</div><div class="total-val" id="out_disc_val">0.00</div></div>
-        <div class="total-line"><div class="total-lbl grand-total" id="lbl-grand">Total Inc. VAT (SR)</div><div class="total-val grand-total" id="out_grand">0.00</div></div>
+        <div class="total-line grand-total-line"><div class="total-lbl" id="lbl-grand">Total Inc. VAT (SR)</div><div class="total-val" id="out_grand">0.00</div></div>
     </div>
     <div style="clear:both;"></div>
 
     <!-- TERMS -->
     <div class="terms-section" id="terms-section">
-        <div class="terms-title" id="terms-title">Terms and Conditions :</div>
+        <div class="terms-title" id="terms-title">Terms and Conditions</div>
         <div class="terms-grid">
-            <div class="terms-label" id="t-validity-lbl">Validity</div><div id="t-validity-val">: 07 days</div>
-            <div class="terms-label" id="t-delivery-lbl">Delivery</div><div id="t-delivery-val">: To be agreed</div>
-            <div class="terms-label" id="t-payment-lbl">Payment</div><div id="t-payment-val">: 100% Advance</div>
+            <div class="terms-label"><span class="terms-icon">📅</span><span id="t-validity-lbl">Validity</span></div><div id="t-validity-val">: 07 days</div>
+            <div class="terms-label"><span class="terms-icon">🚚</span><span id="t-delivery-lbl">Delivery</span></div><div id="t-delivery-val">: To be agreed</div>
+            <div class="terms-label"><span class="terms-icon">💳</span><span id="t-payment-lbl">Payment</span></div><div id="t-payment-val">: 100% Advance</div>
         </div>
     </div>
 
@@ -393,6 +568,12 @@
 
 <script>
     const { ipcRenderer } = require('electron');
+
+    let isDirty = false;
+    ipcRenderer.on('request-close', () => {
+        const safe = !isDirty || confirm('You have unsaved changes. Close anyway?');
+        ipcRenderer.send('confirm-close', safe);
+    });
     const path = require('path');
     const fs   = require('fs');
 
@@ -409,7 +590,7 @@
             sidebarTitle:'Quotation Editor',
             lblTo:'To :', lblDate:'Date :', lblAtt:'Att :', lblFrom:'From :',
             lblVno:'Customer VAT No.', lblMobile:'No. (Mobile)', lblDisc:'Discount (%)',
-            addBtn:'+ Add Product', dlBtn:'DOWNLOAD QUOTATION (PDF)',
+            addBtn:'+ Add Product', dlBtn:'DOWNLOAD QUOTATION (PDF)', newBtn:'📄 New Quotation',
             dlBtnSaving:'Saving PDF...', dlBtnDone:'✓ PDF Saved!',
             pasteZone:'Click & Paste', qty:'Qty', brand:'Brand',
             code:'Code', desc:'Description', price:'Price (SR)', custom:'Custom',
@@ -433,7 +614,7 @@
             sidebarTitle:'محرر عرض السعر',
             lblTo:'إلى :', lblDate:'التاريخ :', lblAtt:'الاهتمام :', lblFrom:'من :',
             lblVno:'الرقم الضريبي للعميل', lblMobile:'الهاتف', lblDisc:'الخصم (%)',
-            addBtn:'+ إضافة منتج', dlBtn:'تحميل عرض السعر (PDF)',
+            addBtn:'+ إضافة منتج', dlBtn:'تحميل عرض السعر (PDF)', newBtn:'📄 عرض سعر جديد',
             dlBtnSaving:'جاري الحفظ...', dlBtnDone:'✓ تم الحفظ!',
             pasteZone:'انقر والصق الصورة', qty:'الكمية', brand:'الماركة',
             code:'الكود', desc:'الوصف', price:'السعر (ريال)', custom:'مخصص',
@@ -466,18 +647,6 @@
         } catch (e) { /* silent fail */ }
     }
 
-    // ── FIREBASE: fetch next DN number (Delivery Note) ──
-    async function fetchNextDN() {
-        try {
-            const result = await ipcRenderer.invoke('get-next-dn');
-            if (result.success) {
-                const padded = String(result.value).padStart(3, '0');
-                document.getElementById('in_att_suffix').value = padded;
-                sync();
-            }
-        } catch (e) { /* silent fail */ }
-    }
-
     // ── 1) REFRESH / NEW QUOTATION — hang-free ──
     function refreshForm() {
         // Clear inputs
@@ -500,6 +669,16 @@
         fetchNextAtt();   // auto-fill ATT number for new quotation
     }
 
+    // ── NEW QUOTATION BUTTON ──
+    function newQuotation() {
+        const btn = document.getElementById('dl-btn');
+        if (btn.disabled) return;
+        const t = T[currentLang];
+        if (isDirty && !confirm(t.confirmRefresh)) return;
+        isDirty = false;
+        refreshForm();
+    }
+
     // ── 3) ZOOM ──
     let zoomLevel = 1.0;
     function zoomIn()  { zoomLevel = Math.min(parseFloat((zoomLevel + 0.1).toFixed(1)), 2.0); applyZoom(); }
@@ -509,42 +688,8 @@
         document.getElementById('zoom-display').innerText = Math.round(zoomLevel * 100) + '%';
     }
 
-    // ── DELIVERY NOTE TOGGLE ──
-    let isDeliveryNote = false;
-    function toggleDeliveryNote() {
-        isDeliveryNote = !isDeliveryNote;
-        // Switch prefix label and fetch correct counter
-        const prefixEl = document.getElementById('att_prefix_display');
-        if (isDeliveryNote) {
-            prefixEl.innerText = 'R1D2026';
-            fetchNextDN();
-        } else {
-            prefixEl.innerText = 'R1Q2026';
-            fetchNextAtt();
-        }
-        const t     = T[currentLang];
-        const sheet = document.getElementById('quotation-sheet');
-        const dnBtn = document.getElementById('dn-btn');
-        const dlBtn = document.getElementById('dl-btn');
-
-        if (isDeliveryNote) {
-            sheet.classList.add('dn-mode');
-            dnBtn.style.background = '#4a235a';
-            dnBtn.innerText = t.dnBtnActive;
-            dlBtn.innerText = t.dnDlBtn;
-            document.getElementById('doc-title-en').innerText = 'Delivery Note';
-            document.getElementById('doc-title-ar').innerText = 'إشعار التسليم';
-            document.getElementById('intro-text').innerText   = t.dnIntro;
-        } else {
-            sheet.classList.remove('dn-mode');
-            dnBtn.style.background = '#7b2d8b';
-            dnBtn.innerText = t.dnBtn;
-            dlBtn.innerText = t.dlBtn;
-            document.getElementById('doc-title-en').innerText = 'Quotation';
-            document.getElementById('doc-title-ar').innerText = 'عرض سعر';
-            document.getElementById('intro-text').innerText   = t.intro;
-        }
-    }
+    // ── DELIVERY NOTE TOGGLE — removed: DN is now a separate window (deliverynote.html) ──
+    const isDeliveryNote = false;
 
     // ── LANGUAGE SETTER — called from front page via localStorage ──
     function setLang(lang) {
@@ -556,26 +701,31 @@
         document.documentElement.setAttribute('dir', isAr ? 'rtl' : 'ltr');
 
         document.getElementById('sidebar-title').innerText    = t.sidebarTitle;
-        document.getElementById('lbl-to').innerText           = t.lblTo;
-        document.getElementById('lbl-date').innerText         = t.lblDate;
-        document.getElementById('lbl-att').innerText          = t.lblAtt;
-        document.getElementById('lbl-from').innerText         = t.lblFrom;
-        document.getElementById('lbl-vno').innerText          = t.lblVno;
-        document.getElementById('lbl-mobile').innerText       = t.lblMobile;
-        document.getElementById('lbl-disc').innerText         = t.lblDisc;
+        if (document.querySelector('.sidebar-header-card .subtitle')) {
+            document.querySelector('.sidebar-header-card .subtitle').innerText = isAr ? 'إنشاء وتخصيص عرض السعر' : 'Create and customize your quotation';
+        }
+        // BUG #3 FIX: target .lbl-text spans, not the label itself, to preserve SVG icons
+        const setLblText = (id, text) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const span = el.querySelector('.lbl-text');
+            if (span) span.innerText = text;
+            else el.innerText = text; // fallback for labels without SVG
+        };
+        setLblText('lbl-to',     t.lblTo);
+        setLblText('lbl-date',   t.lblDate);
+        setLblText('lbl-att',    t.lblAtt);
+        setLblText('lbl-from',   t.lblFrom);
+        setLblText('lbl-vno',    t.lblVno);
+        setLblText('lbl-mobile', t.lblMobile);
+        setLblText('lbl-disc',   t.lblDisc);
         document.getElementById('add-product-btn').innerText  = t.addBtn;
         document.getElementById('dl-btn').innerText           = t.dlBtn;
+        document.getElementById('new-btn').innerText          = t.newBtn;
         document.getElementById('in_cust').placeholder        = t.custPh;
-        // Restore delivery note button label based on current state
-        if (isDeliveryNote) {
-            document.getElementById('dl-btn').innerText       = t.dnDlBtn;
-            document.getElementById('intro-text').innerText   = t.dnIntro;
-            document.getElementById('doc-title-en').innerText = 'Delivery Note';
-            document.getElementById('doc-title-ar').innerText = 'إشعار التسليم';
-        } else {
-            document.getElementById('doc-title-en').innerText = 'Quotation';
-            document.getElementById('doc-title-ar').innerText = 'عرض سعر';
-        }
+
+        document.getElementById('doc-title-en').innerText = 'QUOTATION';
+        document.getElementById('doc-title-ar').innerText = 'عرض سعر';
 
         document.getElementById('header-en').style.display       = isAr ? 'none' : '';
         document.getElementById('header-ar').style.display       = isAr ? '' : 'none';
@@ -662,13 +812,19 @@
         const items = (event.clipboardData || event.originalEvent.clipboardData).items;
         for (let item of items) {
             if (item.kind === 'file') {
+                // BUG FIX: prevent browser's default contenteditable paste which inserts
+                // a second copy of the image as a DOM node before our FileReader resolves.
+                event.preventDefault();
+                const zone = event.currentTarget;
+                zone.innerHTML = ''; // clear immediately so nothing shows until load completes
                 const reader = new FileReader();
                 reader.onload = e => {
                     imageData[id] = e.target.result;
-                    event.target.innerHTML = `<img src="${e.target.result}" style="max-height:50px;">`;
+                    zone.innerHTML = `<img src="${e.target.result}" style="max-height:50px;">`;
                     sync();
                 };
                 reader.readAsDataURL(item.getAsFile());
+                break; // only handle first file item
             }
         }
     }
@@ -689,9 +845,12 @@
         div.id = `row-${id}`;
         div.innerHTML = `
             <button class="delete-row" onclick="deleteRow(${id})">✕</button>
-            <label data-key="pasteZone" style="font-size:11px;font-weight:600;color:#486581;text-transform:uppercase;">${t.pasteZone}</label>
-            <div class="paste-zone" contenteditable="true" onpaste="handlePaste(event,${id})">${t.pasteZone}</div>
-            <label data-key="qty" style="margin-top:10px;font-size:11px;font-weight:600;color:#486581;text-transform:uppercase;">${t.qty}</label>
+            <label data-key="pasteZone" style="font-size:10px;font-weight:700;color:#627d98;text-transform:uppercase;letter-spacing:0.5px;">${t.pasteZone}</label>
+            <div class="paste-zone" contenteditable="true" onpaste="handlePaste(event,${id})">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9fb3c8" stroke-width="2"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+                <span data-key="pasteZone">${t.pasteZone}</span>
+            </div>
+            <label data-key="qty" style="margin-top:10px;font-size:10px;font-weight:700;color:#627d98;text-transform:uppercase;letter-spacing:0.5px;">${t.qty}</label>
             <div class="qty-container">
                 <div class="qty-circle active" onclick="setQty(${id},1,this)">1</div>
                 <div class="qty-circle" onclick="setQty(${id},2,this)">2</div>
@@ -705,21 +864,31 @@
                 <div class="qty-custom-btn" onclick="toggleCustom(${id})" data-key="custom">${t.custom}</div>
             </div>
             <input type="number" class="r-qty" id="qty-val-${id}" value="1" oninput="sync()" style="display:none;margin-bottom:10px;">
-            <label data-key="brand" style="font-size:11px;font-weight:600;color:#486581;text-transform:uppercase;">${t.brand}</label>
-            <input type="text" class="r-brand" value="TREDEX" oninput="sync()">
-            <label data-key="code" style="font-size:11px;font-weight:600;color:#486581;text-transform:uppercase;">${t.code}</label>
+            <label data-key="brand" style="font-size:10px;font-weight:700;color:#627d98;text-transform:uppercase;letter-spacing:0.5px;">${t.brand}</label>
+            <input type="text" class="r-brand" list="brand-list-${id}" placeholder="Select or enter brand" oninput="sync()">
+            <datalist id="brand-list-${id}">
+                <option value="TREDEX"><option value="RAHA"><option value="Stamina"><option value="WSAN"><option value="LUXI"><option value="GROHE"><option value="HANS MARK">
+            </datalist>
+            <label data-key="code" style="font-size:10px;font-weight:700;color:#627d98;text-transform:uppercase;letter-spacing:0.5px;">${t.code}</label>
             <input type="text" class="r-code" placeholder="" oninput="sync()">
-            <label data-key="desc" style="font-size:11px;font-weight:600;color:#486581;text-transform:uppercase;">${t.desc}</label>
+            <label data-key="desc" style="font-size:10px;font-weight:700;color:#627d98;text-transform:uppercase;letter-spacing:0.5px;">${t.desc}</label>
             <input type="text" class="r-desc" placeholder="" oninput="sync()">
-            <label data-key="price" style="font-size:11px;font-weight:600;color:#486581;text-transform:uppercase;">${t.price}</label>
+            <label data-key="price" style="font-size:10px;font-weight:700;color:#627d98;text-transform:uppercase;letter-spacing:0.5px;">${t.price}</label>
             <input type="number" class="r-price" value="0" oninput="sync()">
         `;
         document.getElementById('row-inputs').appendChild(div);
         sync();
     }
 
-    // ── SYNC ──
+    // ISSUE #13 FIX: debounce sync so rapid keystrokes don't rebuild the table on every character
+    let _syncTimer = null;
     function sync() {
+        clearTimeout(_syncTimer);
+        _syncTimer = setTimeout(_syncNow, 80);
+    }
+
+    // ── SYNC (actual work) ──
+    function _syncNow() {
         const cust    = document.getElementById('in_cust').value;
         const suffix  = document.getElementById('in_att_suffix').value;
         const attFull = (isDeliveryNote ? 'R1D2026' : 'R1Q2026') + suffix;
@@ -775,7 +944,7 @@
 
             // Highlight duplicate in sidebar editor
             ed.style.border     = isDup ? '2px solid #e67e22' : '1px solid #d9e2ec';
-            ed.style.background = isDup ? '#fff8f0' : '#f0f4f8';
+            ed.style.background = isDup ? '#fff8f0' : '#f8fafc';
 
             // Show/hide ⚠️ badge inside the editor
             let badge = ed.querySelector('.dup-badge');
@@ -809,10 +978,10 @@
         document.getElementById('items-output-en').innerHTML = rowsHtml;
         document.getElementById('items-output-ar').innerHTML = rowsHtml;
 
-        const vat         = subtotal * 0.15;
-        const totalIncVat = subtotal + vat;
-        const discAmount  = totalIncVat * (discPerc / 100);
-        const grandTotal  = totalIncVat - discAmount;
+        const discAmount  = subtotal * (discPerc / 100);
+        const discounted  = subtotal - discAmount;
+        const vat         = discounted * 0.15;
+        const grandTotal  = discounted + vat;
 
         const fmt = v => v.toLocaleString(undefined,{minimumFractionDigits:2});
 
@@ -870,9 +1039,8 @@
         const isAr        = currentLang === 'ar';
         const custName    = document.getElementById('in_cust').value.trim();
         const attSuffix   = document.getElementById('in_att_suffix').value.trim();
-        const attFull     = (isDeliveryNote ? 'R1D2026' : 'R1Q2026') + attSuffix;
-        const docType     = isDeliveryNote ? 'DeliveryNote' : 'Quotation';
-        const baseName    = custName && attSuffix ? `${custName}_${attFull}_${docType}` : (custName || attFull || docType);
+        const attFull     = 'R1Q2026' + attSuffix;
+        const baseName    = custName && attSuffix ? `${custName}_${attFull}_Quotation` : (custName || attFull || 'Quotation');
 
         btn.innerText = t.dlBtnSaving;
         btn.style.opacity = '0.5';
@@ -882,49 +1050,40 @@
         document.getElementById('page-wrap').style.marginLeft  = '0';
         document.getElementById('page-wrap').style.marginRight = '0';
 
-        await new Promise(r => setTimeout(r, 300));
+        // ISSUE #25 FIX: wait longer to ensure browser has fully repainted
+        // before Electron captures the PDF — 300ms was too short on slow machines
+        await new Promise(r => setTimeout(r, 500));
 
         const result = await ipcRenderer.invoke('save-pdf', baseName);
 
         document.getElementById('controls').style.display      = 'block';
-        document.getElementById('page-wrap').style.marginLeft  = isAr ? '0'     : '400px';
-        document.getElementById('page-wrap').style.marginRight = isAr ? '400px' : '0';
+        // BUG #5 FIX: restore the actual current sidebar width (user may have resized it),
+        // not the hardcoded default of 340px.
+        const sidebarW = document.getElementById('controls').offsetWidth;
+        document.getElementById('page-wrap').style.marginLeft  = isAr ? '0'                    : (sidebarW + 20) + 'px';
+        document.getElementById('page-wrap').style.marginRight = isAr ? (sidebarW + 20) + 'px' : '0';
 
         if (result.success) {
+            isDirty = false;
+            _historyCache = null; // ISSUE #12 FIX: invalidate cache so history refreshes after save
             btn.innerText = t.dlBtnDone;
             setTimeout(() => { btn.innerText = t.dlBtn; btn.style.opacity='1'; btn.disabled=false; }, 2500);
-            if (isDeliveryNote) {
-                // ── Firebase: increment DN counter ──
-                ipcRenderer.invoke('increment-dn').catch(() => {});
-                // ── Firebase: save delivery note record ──
-                try {
-                    const dnRecord = {
-                        dnNo         : attFull,
-                        customerName : document.getElementById('in_cust').value.trim(),
-                        mobile       : '05' + (document.getElementById('in_mobile_suffix').value.trim()),
-                        date         : document.getElementById('out_date') ? document.getElementById('out_date').innerText : new Date().toLocaleDateString(),
-                        from         : document.getElementById('in_from').value,
-                        savedAt      : new Date().toISOString()
-                    };
-                    ipcRenderer.invoke('save-dn-record', dnRecord).catch(() => {});
-                } catch(e) { /* silent fail */ }
-            } else {
-                // ── Firebase: increment quotation counter ──
-                ipcRenderer.invoke('increment-att').catch(() => {});
-                // ── Firebase: save quotation record ──
-                try {
-                    const qRecord = {
-                        customerName : document.getElementById('in_cust').value.trim(),
-                        mobile       : '05' + (document.getElementById('in_mobile_suffix').value.trim()),
-                        attNo        : attFull,
-                        date         : document.getElementById('out_date') ? document.getElementById('out_date').innerText : new Date().toLocaleDateString(),
-                        from         : document.getElementById('in_from').value,
-                        totalVAT     : document.getElementById('out_grand').innerText,
-                        savedAt      : new Date().toISOString()
-                    };
-                    ipcRenderer.invoke('save-quotation-record', qRecord).catch(() => {});
-                } catch(e) { /* silent fail */ }
-            }
+            // ── Firebase: increment quotation counter ──
+            ipcRenderer.invoke('increment-att').catch(() => {});
+            // ── Firebase: save quotation record ──
+            try {
+                const qRecord = {
+                    customerName : document.getElementById('in_cust').value.trim(),
+                    mobile       : '05' + (document.getElementById('in_mobile_suffix').value.trim()),
+                    attNo        : attFull,
+                    date         : document.getElementById('out_date') ? document.getElementById('out_date').innerText : new Date().toLocaleDateString(),
+                    from         : document.getElementById('in_from').value,
+                    totalVAT     : document.getElementById('out_grand').innerText,
+                    savedAt      : new Date().toISOString()
+                };
+                ipcRenderer.invoke('save-quotation-record', qRecord).catch(() => {});
+            } catch(e) { /* silent fail */ }
+            setTimeout(() => { ipcRenderer.send('close-window'); }, 2500);
         } else {
             btn.innerText = t.dlBtn;
             btn.style.opacity = '1';
@@ -979,63 +1138,97 @@
         });
     })();
 
-
-    // ── AUTO-UPDATE POPUP ──
-    (function() {
-        const { ipcRenderer } = require('electron');
-
-        ipcRenderer.on('update-status', (event, info) => {
-            const overlay     = document.getElementById('update-overlay');
-            const title       = document.getElementById('update-popup-title');
-            const msg         = document.getElementById('update-banner-msg');
-            const installBtn  = document.getElementById('update-install-btn');
-            const laterBtn    = document.getElementById('update-later-btn');
-            const progressWrap= document.getElementById('update-progress-bar-wrap');
-            const progressBar = document.getElementById('update-progress-bar');
-
-            if (info.state === 'downloading') {
-                title.innerText = '🔄 Downloading Update...';
-                const pct = info.percent != null ? info.percent : 0;
-                msg.innerText = `Version ${info.version || 'new'} is downloading — ${pct}% complete. Please wait.`;
-                progressWrap.style.display = 'block';
-                progressBar.style.width = pct + '%';
-                installBtn.style.display = 'none';
-                laterBtn.style.display = 'none';
-            } else if (info.state === 'ready') {
-                title.innerText = '✅ Update Ready!';
-                msg.innerText = `Version ${info.version} has been downloaded.
-Click below to restart and apply the update.`;
-                progressWrap.style.display = 'none';
-                installBtn.style.display = 'block';
-                laterBtn.style.display = 'block';
+    document.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            // BUG #6 FIX: only save when the Editor tab is active — not while browsing History
+            if (document.getElementById('panel-editor').style.display !== 'none') {
+                downloadPDF();
             }
+        }
+    });
+    document.querySelectorAll('input,select,textarea').forEach(el => {
+        el.addEventListener('input',  () => { isDirty = true; });
+        el.addEventListener('change', () => { isDirty = true; });
+    });
+    async function checkFirebase() {
+        try {
+            // Use a dedicated ping — NOT get-next-att which now increments the counter
+            const r = await ipcRenderer.invoke('ping-firebase');
+            document.getElementById('offline-bar').style.display = r.success ? 'none' : 'block';
+        } catch(e) { document.getElementById('offline-bar').style.display = 'block'; }
+    }
+    checkFirebase();
 
-            overlay.classList.add('visible');
-        });
+    // ISSUE #12 FIX: cache history rows; only re-fetch from Firebase when forced
+    let _historyCache = null;
+    let _historyCacheTime = 0;
+    const HISTORY_CACHE_MS = 30000; // 30 seconds
 
-        window.installUpdate = function() {
-            ipcRenderer.send('install-update-now');
-        };
+    // BUG #7 FIX: debounce history search — filter locally from cache on every keystroke,
+    // only hit Firebase (via loadHistory) when cache is cold (first open or stale).
+    let _histSearchTimer = null;
+    function debouncedHistSearch() {
+        clearTimeout(_histSearchTimer);
+        _histSearchTimer = setTimeout(() => loadHistory(false), 220);
+    }
 
-        window.dismissUpdateBanner = function() {
-            document.getElementById('update-overlay').classList.remove('visible');
-        };
-    })();
+    function switchTab(tab) {
+        const isHist = tab === 'history';
+        document.getElementById('panel-editor').style.display  = isHist ? 'none'  : 'block';
+        document.getElementById('panel-history').style.display = isHist ? 'flex'  : 'none';
+        document.getElementById('tab-editor').style.background  = isHist ? '#d9e2ec' : '#102a43';
+        document.getElementById('tab-editor').style.color       = isHist ? '#486581' : 'white';
+        document.getElementById('tab-history').style.background = isHist ? '#102a43' : '#d9e2ec';
+        document.getElementById('tab-history').style.color      = isHist ? 'white'   : '#486581';
+        if (isHist) loadHistory(false);
+    }
+    async function loadHistory(forceRefresh = false) {
+        const tbody  = document.getElementById('hist-tbody');
+        const search = (document.getElementById('hist-search').value||'').toLowerCase().trim();
+
+        // Use cache unless it's stale or a force-refresh was requested
+        const now = Date.now();
+        if (!forceRefresh && _historyCache && (now - _historyCacheTime) < HISTORY_CACHE_MS) {
+            renderHistoryRows(_historyCache, tbody, search);
+            return;
+        }
+
+        tbody.innerHTML = '<tr><td colspan="5" style="padding:14px;text-align:center;color:#888;font-size:11px;">Loading...</td></tr>';
+        try {
+            const res = await ipcRenderer.invoke('get-history', 'quotation');
+            if (!res.success) {
+                tbody.innerHTML = `<tr><td colspan="5" style="padding:14px;text-align:center;color:#d32f2f;font-size:11px;">Error: ${res.reason}</td></tr>`;
+                return;
+            }
+            _historyCache     = res.rows;
+            _historyCacheTime = Date.now();
+            renderHistoryRows(res.rows, tbody, search);
+        } catch(e) {
+            tbody.innerHTML = '<tr><td colspan="5" style="padding:14px;text-align:center;color:#d32f2f;font-size:11px;">Load failed</td></tr>';
+        }
+    }
+    function renderHistoryRows(rows, tbody, search) {
+        const filtered = search ? rows.filter(r => JSON.stringify(r).toLowerCase().includes(search)) : rows;
+        if (!filtered.length) {
+            tbody.innerHTML = '<tr><td colspan="5" style="padding:14px;text-align:center;color:#888;font-size:11px;">No records</td></tr>';
+            return;
+        }
+        tbody.innerHTML = filtered.map(r=>`<tr style="border-bottom:1px solid #f0f4f8;">
+            <td style="padding:7px 10px;font-size:11px;">${r.attNo||''}</td>
+            <td style="padding:7px 10px;font-size:11px;">${r.customerName||''}</td>
+            <td style="padding:7px 10px;font-size:11px;">${r.date||''}</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:700;">${r.totalVAT||'—'}</td>
+            <td style="padding:7px 10px;font-size:10px;color:#888;">${r.savedAt?r.savedAt.slice(0,10):''}</td>
+        </tr>`).join('');
+    }
 
     loadLogo();
     setTodayDate();
     addRow();
-    fetchNextAtt();   // auto-fill ATT on first launch
-    // Read language set by front page
-    const savedLang = localStorage.getItem('rahaLang') || 'en';
+    fetchNextAtt();
+    const savedLang = localStorage.getItem('rahaLang') || 'ar';
     setLang(savedLang);
-
-    // Read mode set by front page — auto-switch to delivery note if needed
-    const savedMode = localStorage.getItem('rahaMode') || 'quotation';
-    if (savedMode === 'delivery' && !isDeliveryNote) {
-        toggleDeliveryNote();
-    }
-    localStorage.removeItem('rahaMode');  // clear after reading so re-open defaults to quotation
 </script>
 </body>
 </html>

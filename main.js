@@ -2,6 +2,35 @@ const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
+// ── PRODUCT ASSISTANT — XLSX DATABASE ──
+let productRows = [];
+const PA_DB_CANDIDATES = [
+    path.join(process.resourcesPath || '', 'data', 'products.xlsx'),
+    path.join(__dirname, 'data', 'products.xlsx'),
+    path.join(process.resourcesPath || '', 'data', 'products.csv'),
+    path.join(__dirname, 'data', 'products.csv'),
+];
+const PA_IMG_DIR_CANDIDATES = [
+    path.join(process.resourcesPath || '', 'ProductImages'),
+    path.join(__dirname, 'ProductImages'),
+];
+
+function loadProductDB() {
+    try {
+        const XLSX = require('xlsx');
+        const dbPath = PA_DB_CANDIDATES.find(p => fs.existsSync(p));
+        if (!dbPath) { console.warn('Product DB: products.xlsx/csv not found in data/ folder.'); return 0; }
+        const wb = XLSX.readFile(dbPath);
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        productRows = XLSX.utils.sheet_to_json(ws);
+        console.log(`Product DB loaded: ${productRows.length} rows from ${dbPath}`);
+        return productRows.length;
+    } catch (err) {
+        console.error('Product DB load error:', err.message);
+        return 0;
+    }
+}
+
 // ── FIREBASE SETUP ──
 let db = null;
 function initFirebase() {
@@ -21,10 +50,23 @@ function initFirebase() {
 
         const serviceAccount = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 
+        // M-3 FIX: databaseURL is NOT part of the standard Firebase service account JSON.
+        // It must be a separate top-level field in firebase-config.json.
+        // We read it explicitly and fall back to serviceAccount.databaseURL only for
+        // backward compatibility with older config files that had it embedded.
+        const databaseURL = serviceAccount.databaseURL_override
+            || serviceAccount.databaseURL
+            || null;
+
+        if (!databaseURL) {
+            console.error('Firebase: databaseURL not found in firebase-config.json — add a "databaseURL" field.');
+            return;
+        }
+
         if (!admin.apps.length) {
             admin.initializeApp({
                 credential: admin.credential.cert(serviceAccount),
-                databaseURL: serviceAccount.databaseURL
+                databaseURL: databaseURL
             });
         }
 
@@ -74,7 +116,9 @@ function initAutoUpdater() {
 let mainWindow;
 let contractWindow = null;
 let quotationWindow = null;
+let deliveryWindow = null;
 let purchaseWindow = null;
+let productAssistantWindow = null;
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -95,6 +139,7 @@ function createWindow() {
 
 app.whenReady().then(() => {
     initFirebase();
+    loadProductDB();
     createWindow();
     initAutoUpdater();
 });
@@ -134,6 +179,18 @@ ipcMain.handle('save-quotation-record', async (event, record) => {
         const key = record.attNo.replace(/[.#$[\]]/g, '_');
         await db.ref('quotations/' + key).set(record);
         console.log('Quotation saved to Firebase:', key);
+        if (mainWindow) mainWindow.webContents.send('record-saved');
+        return { success: true };
+    } catch (err) {
+        return { success: false, reason: err.message };
+    }
+});
+
+// Ping Firebase — used by all renderer windows to check connectivity (never touches counters)
+ipcMain.handle('ping-firebase', async () => {
+    if (!db) return { success: false, reason: 'no-firebase' };
+    try {
+        await db.ref('.info/connected').once('value');
         return { success: true };
     } catch (err) {
         return { success: false, reason: err.message };
@@ -141,17 +198,20 @@ ipcMain.handle('save-quotation-record', async (event, record) => {
 });
 
 // Save Quotation PDF
+// Uses event.sender to identify the exact calling window — never guesses from global vars.
+// This means it works correctly even if both quotationWindow and deliveryWindow are open.
 ipcMain.handle('save-pdf', async (event, baseName) => {
+    const callerWindow = BrowserWindow.fromWebContents(event.sender);
+    if (!callerWindow) return { success: false, error: 'caller-window-not-found' };
     const defaultName = baseName ? `${baseName}.pdf` : 'Quotation.pdf';
-    const { filePath, canceled } = await dialog.showSaveDialog(quotationWindow || mainWindow, {
+    const { filePath, canceled } = await dialog.showSaveDialog(callerWindow, {
         title: 'Save Quotation As',
         defaultPath: defaultName,
         filters: [{ name: 'PDF Files', extensions: ['pdf'] }]
     });
     if (canceled || !filePath) return { success: false };
     try {
-        const targetWindow = quotationWindow || mainWindow;
-        const pdfBuffer = await targetWindow.webContents.printToPDF({
+        const pdfBuffer = await callerWindow.webContents.printToPDF({
             printBackground: true, pageSize: 'A4', landscape: false,
             margins: { marginType: 'custom', top: 0, bottom: 0, left: 0, right: 0 }
         });
@@ -197,9 +257,37 @@ ipcMain.handle('save-dn-record', async (event, record) => {
         const key = record.dnNo.replace(/[.#$[\]]/g, '_');
         await db.ref('delivery_notes/' + key).set(record);
         console.log('Delivery note saved to Firebase:', key);
+        if (mainWindow) mainWindow.webContents.send('record-saved');
         return { success: true };
     } catch (err) {
         return { success: false, reason: err.message };
+    }
+});
+
+// Save Delivery Note PDF
+// M-2 FIX: use event.sender to resolve the calling window — same pattern as save-pdf.
+// Global deliveryWindow can be null if the window was destroyed unexpectedly.
+ipcMain.handle('save-dn-pdf', async (event, baseName) => {
+    const callerWindow = BrowserWindow.fromWebContents(event.sender);
+    if (!callerWindow) return { success: false, error: 'caller-window-not-found' };
+    const defaultName = baseName ? `${baseName}.pdf` : 'DeliveryNote.pdf';
+    const { filePath, canceled } = await dialog.showSaveDialog(callerWindow, {
+        title: 'Save Delivery Note As',
+        defaultPath: defaultName,
+        filters: [{ name: 'PDF Files', extensions: ['pdf'] }]
+    });
+    if (canceled || !filePath) return { success: false };
+    try {
+        const pdfBuffer = await callerWindow.webContents.printToPDF({
+            printBackground: true, pageSize: 'A4', landscape: false,
+            margins: { marginType: 'custom', top: 0, bottom: 0, left: 0, right: 0 }
+        });
+        fs.writeFileSync(filePath, pdfBuffer);
+        shell.openPath(filePath);
+        return { success: true };
+    } catch (err) {
+        console.error('DN PDF Error:', err);
+        return { success: false, error: err.message };
     }
 });
 
@@ -227,15 +315,10 @@ ipcMain.handle('open-contract', async () => {
     contractWindow.on('closed', () => { contractWindow = null; });
 });
 
+
 // ── Open Quotation Window ──
-ipcMain.handle('open-quotation', async (event, mode) => {
-    // mode = 'quotation' or 'delivery'
-    if (quotationWindow) {
-        quotationWindow.focus();
-        // Tell the already-open window to switch mode
-        quotationWindow.webContents.send('set-mode', mode || 'quotation');
-        return;
-    }
+ipcMain.handle('open-quotation', async () => {
+    if (quotationWindow) { quotationWindow.focus(); return; }
     quotationWindow = new BrowserWindow({
         width: 1400,
         height: 900,
@@ -248,9 +331,29 @@ ipcMain.handle('open-quotation', async (event, mode) => {
             webSecurity: false
         }
     });
-    quotationWindow.loadFile('quotation.html', { query: { mode: mode || 'quotation' } });
+    quotationWindow.loadFile('quotation.html');
     quotationWindow.setMenuBarVisibility(false);
     quotationWindow.on('closed', () => { quotationWindow = null; });
+});
+
+// ── Open Delivery Note Window ──
+ipcMain.handle('open-delivery', async () => {
+    if (deliveryWindow) { deliveryWindow.focus(); return; }
+    deliveryWindow = new BrowserWindow({
+        width: 1400,
+        height: 900,
+        minWidth: 1100,
+        minHeight: 700,
+        title: 'Raha Co. — Delivery Note',
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            webSecurity: false
+        }
+    });
+    deliveryWindow.loadFile('deliverynote.html');
+    deliveryWindow.setMenuBarVisibility(false);
+    deliveryWindow.on('closed', () => { deliveryWindow = null; });
 });
 
 // Get current contract S/N from Firebase
@@ -279,9 +382,20 @@ ipcMain.handle('increment-sn', async () => {
 ipcMain.handle('save-contract-record', async (event, record) => {
     if (!db) return { success: false, reason: 'no-firebase' };
     try {
-        const key = record.sn.replace(/[.#$[\]]/g, '_');
-        await db.ref('contracts/' + key).set(record);
-        console.log('Contract saved to Firebase:', key);
+        const sn  = (record['sn_key'] || 'unknown').replace(/[.#$[\]]/g, '_');
+        const safeRecord = {
+            sn          : record['sn_key']      || '',
+            customerName: record['customerName'] || '',
+            date        : record['date']         || '',
+            repName     : record['repName']      || '',
+            phone       : record['phone']        || '',
+            amountNumber: record['amountNumber'] || '',
+            amountText  : record['amountText']   || '',
+            savedAt     : record['savedAt']      || ''
+        };
+        await db.ref('contracts/' + sn).set(safeRecord);
+        console.log('Contract saved to Firebase:', sn);
+        if (mainWindow) mainWindow.webContents.send('record-saved');
         return { success: true };
     } catch (err) {
         return { success: false, reason: err.message };
@@ -289,17 +403,19 @@ ipcMain.handle('save-contract-record', async (event, record) => {
 });
 
 // Save Contract PDF
+// M-2 FIX: use event.sender to resolve the calling window.
 ipcMain.handle('save-contract-pdf', async (event, baseName) => {
-    if (!contractWindow) return { success: false };
+    const callerWindow = BrowserWindow.fromWebContents(event.sender);
+    if (!callerWindow) return { success: false, error: 'caller-window-not-found' };
     const defaultName = baseName ? `${baseName}.pdf` : 'عقد_تصنيع.pdf';
-    const { filePath, canceled } = await dialog.showSaveDialog(contractWindow, {
+    const { filePath, canceled } = await dialog.showSaveDialog(callerWindow, {
         title: 'حفظ العقد',
         defaultPath: defaultName,
         filters: [{ name: 'PDF Files', extensions: ['pdf'] }]
     });
     if (canceled || !filePath) return { success: false };
     try {
-        const pdfBuffer = await contractWindow.webContents.printToPDF({
+        const pdfBuffer = await callerWindow.webContents.printToPDF({
             printBackground: true, pageSize: 'A4', landscape: false,
             margins: { marginType: 'custom', top: 0, bottom: 0, left: 0, right: 0 }
         });
@@ -358,18 +474,34 @@ ipcMain.handle('increment-po', async () => {
     }
 });
 
-// Save Purchase Order PDF (from purchaseWindow, not mainWindow)
+// Save Purchase Order record to Firebase
+ipcMain.handle('save-po-record', async (event, record) => {
+    if (!db) return { success: false, reason: 'no-firebase' };
+    try {
+        const key = record.poNo.replace(/[.#$[\]]/g, '_');
+        await db.ref('purchase_orders/' + key).set(record);
+        console.log('Purchase Order saved to Firebase:', key);
+        if (mainWindow) mainWindow.webContents.send('record-saved');
+        return { success: true };
+    } catch (err) {
+        return { success: false, reason: err.message };
+    }
+});
+
+// Save Purchase Order PDF
+// M-2 FIX: use event.sender to resolve the calling window.
 ipcMain.handle('save-po-pdf', async (event, baseName) => {
-    if (!purchaseWindow) return { success: false };
+    const callerWindow = BrowserWindow.fromWebContents(event.sender);
+    if (!callerWindow) return { success: false, error: 'caller-window-not-found' };
     const defaultName = baseName ? `${baseName}.pdf` : 'PurchaseOrder.pdf';
-    const { filePath, canceled } = await dialog.showSaveDialog(purchaseWindow, {
+    const { filePath, canceled } = await dialog.showSaveDialog(callerWindow, {
         title: 'Save Purchase Order As',
         defaultPath: defaultName,
         filters: [{ name: 'PDF Files', extensions: ['pdf'] }]
     });
     if (canceled || !filePath) return { success: false };
     try {
-        const pdfBuffer = await purchaseWindow.webContents.printToPDF({
+        const pdfBuffer = await callerWindow.webContents.printToPDF({
             printBackground: true, pageSize: 'A4', landscape: false,
             margins: { marginType: 'custom', top: 0, bottom: 0, left: 0, right: 0 }
         });
@@ -380,4 +512,102 @@ ipcMain.handle('save-po-pdf', async (event, baseName) => {
         console.error('PO PDF Error:', err);
         return { success: false, error: err.message };
     }
+});
+// ════════════════════════════════════════════
+// ── HISTORY IPC HANDLER ──
+// ════════════════════════════════════════════
+
+// Fetch history records from Firebase for any module type
+ipcMain.handle('get-history', async (event, type) => {
+    if (!db) return { success: false, reason: 'no-firebase' };
+    try {
+        const refMap = {
+            quotation : 'quotations',
+            delivery  : 'delivery_notes',
+            contract  : 'contracts',
+            purchase  : 'purchase_orders'
+        };
+        const refPath = refMap[type];
+        if (!refPath) return { success: false, reason: 'unknown-type' };
+
+        const snap = await db.ref(refPath).orderByChild('savedAt').limitToLast(200).once('value');
+        const val  = snap.val();
+        if (!val) return { success: true, rows: [] };
+
+        // Convert object to array, sort newest first
+        const rows = Object.values(val).sort((a, b) => {
+            const ta = a.savedAt || '';
+            const tb = b.savedAt || '';
+            return tb.localeCompare(ta);
+        });
+        return { success: true, rows };
+    } catch (err) {
+        return { success: false, reason: err.message };
+    }
+});
+
+// ── PRODUCT ASSISTANT IPC HANDLERS ──
+// ════════════════════════════════════════════
+
+// Open Product Assistant Window
+ipcMain.handle('open-product-assistant', async () => {
+    if (productAssistantWindow) { productAssistantWindow.focus(); return; }
+    productAssistantWindow = new BrowserWindow({
+        width: 1300,
+        height: 860,
+        minWidth: 1000,
+        minHeight: 700,
+        title: 'Raha Co. — Product Assistant',
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            webSecurity: false
+        }
+    });
+    productAssistantWindow.loadFile('product-assistant.html');
+    productAssistantWindow.setMenuBarVisibility(false);
+    productAssistantWindow.on('closed', () => { productAssistantWindow = null; });
+});
+
+// Search products from local XLSX database
+ipcMain.handle('pa-search', async (event, { field, query }) => {
+    try {
+        const q = (query || '').trim().toLowerCase();
+        if (!q || productRows.length === 0) return [];
+        const fieldMap = {
+            code:   r => String(r['Code'] || ''),
+            name:   r => String(r['Item Name'] || ''),
+            arabic: r => String(r['Item Name Arabic'] || ''),
+            brand:  r => String(r['Brand'] || ''),
+            series: r => String(r['Series'] || ''),
+            all:    r => Object.values(r).join(' ')
+        };
+        const getter = fieldMap[field] || fieldMap['all'];
+        return productRows.filter(r => getter(r).toLowerCase().includes(q)).slice(0, 50);
+    } catch (err) {
+        console.error('pa-search error:', err.message);
+        return [];
+    }
+});
+
+// Get local product image path by product code
+ipcMain.handle('pa-get-image', async (event, code) => {
+    try {
+        const imgDir = PA_IMG_DIR_CANDIDATES.find(p => fs.existsSync(p));
+        if (!imgDir) return null;
+        const exts = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+        for (const ext of exts) {
+            const p = path.join(imgDir, code + ext);
+            if (fs.existsSync(p)) return 'file://' + p;
+        }
+        return null;
+    } catch (err) {
+        return null;
+    }
+});
+
+// Reload product database (hot reload without restarting app)
+ipcMain.handle('pa-reload-db', async () => {
+    const count = loadProductDB();
+    return count;
 });

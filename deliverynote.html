@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raha Co. - Delivery Note</title>
+    <style>
+        :root { 
+            --raha-blue: #102a43; 
+            --border-color: #334e68; 
+            --highlight: #e0e7ff; 
+            --danger: #d32f2f;
+            --success: #22c55e;
+        }
+
+        body { font-family: 'Segoe UI', Arial, Tahoma, sans-serif; margin: 0; background-color: #f0f4f8; color: #102a43; }
+
+        /* SIDEBAR */
+        #controls {
+            width: 320px; position: fixed; left: 0; top: 0; bottom: 0;
+            background: #ffffff; padding: 0; border-right: 1px solid #d9e2ec;
+            overflow-y: auto; z-index: 1000;
+        }
+        body.arabic #controls { left: auto; right: 0; border-right: none; border-left: 1px solid #d9e2ec; direction: rtl; }
+
+        /* SIDEBAR HEADER CARD */
+        .sidebar-header-card {
+            background: var(--raha-blue);
+            padding: 20px 20px 16px;
+            border-radius: 0 0 16px 16px;
+            margin-bottom: 0;
+        }
+        .sidebar-header-card h2 {
+            color: white; margin: 0 0 3px 0; font-size: 18px; font-weight: 800;
+        }
+        .sidebar-header-card .subtitle {
+            color: rgba(255,255,255,0.6); font-size: 11px; margin-bottom: 14px;
+        }
+        .zoom-row {
+            display: flex; align-items: center; gap: 6px;
+        }
+        .zoom-btn {
+            width: 34px; height: 34px; border-radius: 8px;
+            background: rgba(255,255,255,0.15); border: none;
+            color: white; font-size: 18px; font-weight: bold;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: background 0.15s;
+        }
+        .zoom-btn:hover { background: rgba(255,255,255,0.28); }
+        #zoom-display {
+            flex: 1; text-align: center; font-size: 13px; font-weight: 700;
+            color: white; background: rgba(255,255,255,0.15);
+            padding: 7px; border-radius: 8px; border: none;
+        }
+
+        /* SIDEBAR BODY */
+        .sidebar-body { padding: 16px 18px; }
+
+        .input-group { margin-bottom: 13px; }
+        label {
+            display: flex; align-items: center; gap: 5px;
+            font-size: 10px; font-weight: 700; margin-bottom: 5px;
+            text-transform: uppercase; letter-spacing: 0.5px; color: #627d98;
+        }
+        label svg { flex-shrink: 0; }
+        input, select {
+            width: 100%; padding: 9px 11px; border: 1px solid #d9e2ec;
+            border-radius: 8px; box-sizing: border-box; font-size: 13px;
+            color: #102a43; background: #fff; transition: border-color 0.15s;
+        }
+        input:focus, select:focus { outline: none; border-color: #102a43; }
+        input[readonly] { background: #f8fafc; color: #627d98; }
+
+        /* TAB BAR */
+        .tab-bar {
+            display: flex; margin: 0 18px 14px; border-radius: 10px;
+            overflow: hidden; border: 1px solid #d9e2ec; background: #f0f4f8;
+        }
+        .tab-bar button {
+            flex: 1; padding: 9px; border: none; cursor: pointer;
+            font-weight: 700; font-size: 11px; transition: all 0.2s;
+        }
+
+        .lang-btn {
+            width: 100%; padding: 10px; margin-bottom: 20px;
+            background: var(--raha-blue); color: white; border: none;
+            border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold;
+        }
+
+        .row-editor {
+            background: #f8fafc; padding: 13px; border-radius: 10px;
+            border: 1px solid #d9e2ec; margin-bottom: 12px; position: relative;
+        }
+        .delete-row {
+            position: absolute; right: 10px; top: 8px;
+            background: var(--danger); color: white; border: none;
+            border-radius: 4px; cursor: pointer; padding: 4px 9px;
+            font-weight: bold; font-size: 8px;
+        }
+        body.arabic .delete-row { right: auto; left: 10px; }
+
+        .paste-zone {
+            background: #fff; border: 2px dashed #bcccdc;
+            text-align: center; padding: 6px 8px; font-size: 10px;
+            cursor: pointer; color: #627d98; border-radius: 8px;
+            min-height: 0; line-height: 1.8; display: flex;
+            align-items: center; justify-content: center; gap: 6px;
+        }
+
+        .qty-container { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0; }
+        .qty-circle {
+            width: 30px; height: 30px; border-radius: 50%;
+            border: 1.5px solid #d9e2ec; display: flex; align-items: center;
+            justify-content: center; font-size: 12px; cursor: pointer;
+            background: white; transition: 0.15s; font-weight: 700; color: #486581;
+        }
+        .qty-circle.active { background: var(--raha-blue); color: white; border-color: var(--raha-blue); }
+        .qty-circle:hover:not(.active) { border-color: var(--raha-blue); color: var(--raha-blue); }
+        .qty-custom-btn {
+            padding: 2px 12px; border-radius: 15px;
+            border: 1.5px solid #d9e2ec; font-size: 11px;
+            cursor: pointer; background: white; font-weight: 700; color: #486581;
+        }
+        .qty-custom-btn:hover { border-color: var(--raha-blue); color: var(--raha-blue); }
+
+        .add-btn {
+            background: #f0f4f8; color: var(--raha-blue); padding: 11px;
+            border: 2px dashed #bcccdc; border-radius: 8px; cursor: pointer;
+            width: 100%; font-weight: 700; margin-top: 8px; font-size: 13px;
+            transition: all 0.15s;
+        }
+        .add-btn:hover { background: #e8eef4; border-color: var(--raha-blue); }
+
+        .save-pdf-btn {
+            background: var(--raha-blue); color: white; padding: 13px;
+            border: none; border-radius: 10px; cursor: pointer; width: 100%;
+            font-size: 14px; margin-top: 14px; font-weight: 800;
+            box-shadow: 0 4px 12px rgba(16,42,67,0.25); transition: opacity 0.2s;
+            letter-spacing: 0.3px;
+        }
+        .save-pdf-btn:hover { opacity: 0.88; }
+        .save-pdf-btn.secondary {
+            background: #486581; box-shadow: none; margin-top: 8px;
+        }
+
+        /* SECTION SEPARATOR */
+        .sidebar-sep {
+            border: none; border-top: 1px solid #f0f4f8; margin: 14px 0;
+        }
+        .sidebar-section-label {
+            font-size: 10px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.8px; color: #9fb3c8; margin-bottom: 10px;
+        }
+
+        /* DELIVERY NOTE SHEET */
+        #page-wrap { margin-left: 340px; padding: 40px; display: flex; justify-content: center; }
+        body.arabic #page-wrap { margin-left: 0; margin-right: 340px; }
+
+        .invoice-sheet { width: 210mm; min-height: 296mm; background: white; padding: 15mm; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 8px solid var(--raha-blue); box-sizing: border-box; }
+
+        .items-table tr { page-break-inside: avoid; }
+
+        .header-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .vat-badge { display: inline-block; background: var(--raha-blue); color: white; padding: 5px 13px; border-radius: 4px; font-size: 12px; font-weight: 700; margin: 8px 0; }
+
+        .meta-container { border: 1.5px solid var(--border-color); border-radius: 4px; overflow: hidden; }
+        .meta-table { width: 100%; border-collapse: collapse; }
+        .meta-table td { border: 0.5px solid var(--border-color); padding: 8px 12px; font-size: 13px; }
+        .label-cell { background: #f0f4f8; font-weight: bold; width: 15%; white-space: nowrap; }
+
+        .bold-print { font-weight: 800 !important; font-size: 13px; }
+        .intro-text { font-size: 13px; margin: 18px 0; font-weight: 500; color: #486581; }
+
+        .items-table { width: 100%; border-collapse: collapse; margin-top: 5px; table-layout: fixed; }
+        .items-table th { background: var(--raha-blue); color: white; font-size: 10px; padding: 8px; text-transform: uppercase; }
+        .items-table td { border-bottom: 1px solid #d9e2ec; padding: 8px; font-size: 11px; text-align: center; overflow-wrap: break-word; }
+
+        .totals-container { float: right; width: 45%; margin-top: 20px; border: 1.5px solid var(--border-color); border-radius: 4px; overflow: hidden; }
+        body.arabic .totals-container { float: left; }
+        .total-line { display: flex; font-size: 12px; border-bottom: 1px solid var(--border-color); }
+        .total-lbl { width: 60%; padding: 8px; text-align: right; font-weight: bold; background: #f8f9fa; border-right: 1px solid var(--border-color); }
+        body.arabic .total-lbl { text-align: left; border-right: none; border-left: 1px solid var(--border-color); }
+        .total-val { width: 40%; padding: 8px; text-align: right; background: #fff; font-weight: 700; }
+        .grand-total-line { background: var(--raha-blue) !important; }
+        .grand-total-line .total-lbl { background: var(--raha-blue) !important; color: white !important; border-color: #1e3d57 !important; }
+        .grand-total-line .total-val { background: var(--raha-blue) !important; color: white !important; font-size: 13px; font-weight: 800; }
+
+        /* Terms with icons */
+        .terms-section { margin-top: 30px; font-size: 12px; color: #334e68; }
+        .sheet-footer { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #888; margin-top: 30px; padding-top: 10px; border-top: 1px solid #eee; }
+        #disc-row { display: none; }
+        .terms-title { font-weight: 800; margin-bottom: 10px; color: var(--raha-blue); font-size: 13px; border-bottom: 2px solid var(--raha-blue); display: inline-block; padding-bottom: 2px; }
+        .terms-grid { display: grid; grid-template-columns: auto 1fr; row-gap: 8px; column-gap: 10px; align-items: center; }
+        .terms-label { font-weight: 700; display: flex; align-items: center; gap: 7px; }
+        .terms-icon { font-size: 14px; }
+
+        /* SIDEBAR RESIZE HANDLE */
+        #resize-handle {
+            position: fixed; left: 320px; top: 0; bottom: 0; width: 5px;
+            cursor: col-resize; z-index: 1001; background: transparent;
+            transition: background 0.2s;
+        }
+        #resize-handle:hover, #resize-handle.dragging { background: var(--raha-blue); }
+        body.arabic #resize-handle { left: auto; right: 320px; cursor: col-resize; }
+
+        /* DOCUMENT TITLE (centered with lines) */
+        .doc-title {
+            display: flex; align-items: center; text-align: center;
+            margin: 18px 0 14px 0; font-size: 15px; font-weight: 800;
+            color: var(--raha-blue); letter-spacing: 2px;
+        }
+        .doc-title::before, .doc-title::after {
+            content: ''; flex: 1; border-bottom: 1.5px solid var(--raha-blue);
+        }
+        .doc-title::before { margin-right: 14px; }
+        .doc-title::after  { margin-left:  14px; }
+
+        /* VALIDATION */
+        .field-error input, .field-error .prefix-input { border-color: #d32f2f !important; background: #fff5f5 !important; }
+        .field-warn { font-size: 10px; color: #d32f2f; font-weight: 700; margin-top: 3px; display: none; }
+        .field-error .field-warn { display: block; }
+
+        .dn-mode .price-col { display: none !important; }
+        .dn-mode .total-col { display: none !important; }
+        .dn-mode #totals-wrap { display: none !important; }
+
+
+        /* ── AUTO-UPDATE POPUP ── */
+        #update-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 9998;
+            align-items: center;
+            justify-content: center;
+        }
+        #update-overlay.visible { display: flex; }
+        #update-popup {
+            background: white;
+            border-radius: 14px;
+            padding: 36px 40px 30px;
+            width: 380px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            position: relative;
+        }
+        #update-popup .up-icon { font-size: 48px; margin-bottom: 12px; }
+        #update-popup .up-title {
+            font-size: 18px; font-weight: 800;
+            color: #102a43; margin-bottom: 8px;
+        }
+        #update-popup .up-msg {
+            font-size: 13px; color: #555;
+            margin-bottom: 24px; line-height: 1.6;
+        }
+        #update-popup .up-progress {
+            background: #e8f0fe; border-radius: 20px;
+            height: 8px; margin-bottom: 20px; overflow: hidden;
+            display: none;
+        }
+        #update-popup .up-progress-bar {
+            background: linear-gradient(90deg, #2563eb, #38bdf8);
+            height: 100%; width: 0%;
+            transition: width 0.4s ease;
+            border-radius: 20px;
+        }
+        #update-install-btn {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+            color: white; border: none;
+            padding: 13px 0; border-radius: 8px;
+            cursor: pointer; font-weight: 800;
+            font-size: 15px; width: 100%;
+            box-shadow: 0 4px 15px rgba(34,197,94,0.4);
+            transition: opacity 0.2s;
+        }
+        #update-install-btn:hover { opacity: 0.88; }
+        #update-dismiss-btn {
+            position: absolute; top: 14px; right: 16px;
+            background: transparent; color: #aaa; border: none;
+            cursor: pointer; font-size: 20px; line-height: 1;
+            transition: color 0.2s;
+        }
+        #update-dismiss-btn:hover { color: #333; }
+        #update-later-btn {
+            background: transparent; border: none;
+            color: #888; font-size: 12px; cursor: pointer;
+            margin-top: 12px; text-decoration: underline;
+            display: block; width: 100%;
+        }
+        @media print {
+            #controls { display: none !important; }
+            #page-wrap { margin: 0 !important; padding: 0 !important; display: block !important; }
+            .invoice-sheet { box-shadow: none !important; width: 100% !important; border-top: none !important; min-height: 0 !important; height: auto !important; padding: 10mm !important; }
+            .items-table tr { page-break-inside: avoid; }
+            .totals-container { page-break-inside: avoid; }
+            .terms-section { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="controls">
+    <!-- HEADER CARD -->
+    <div class="sidebar-header-card">
+        <h2 id="sidebar-title">Delivery Note Editor</h2>
+        <div class="subtitle">Create and customize your delivery note</div>
+        <div class="zoom-row">
+            <button class="zoom-btn" onclick="zoomOut()">−</button>
+            <span id="zoom-display">100%</span>
+            <button class="zoom-btn" onclick="zoomIn()">+</button>
+        </div>
+    </div>
+
+    <!-- TAB BAR -->
+    <div class="tab-bar" style="margin-top:14px;">
+        <button id="tab-editor" onclick="switchTab('editor')" style="background:#102a43;color:white;border-radius:9px 0 0 9px;">Editor</button>
+        <button id="tab-history" onclick="switchTab('history')" style="background:#f0f4f8;color:#486581;border-radius:0 9px 9px 0;">📋 History</button>
+    </div>
+
+    <div id="panel-editor" class="sidebar-body">
+    <div class="input-group" id="grp-cust">
+        <label id="lbl-to">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            <span class="lbl-text">To</span>
+        </label>
+        <input type="text" id="in_cust" placeholder="Customer Name" oninput="clearError('grp-cust');sync()">
+        <div class="field-warn" id="warn-cust">⚠ Customer name is required</div>
+    </div>
+    <div class="input-group">
+        <label id="lbl-date">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <span class="lbl-text">Date</span>
+        </label>
+        <input type="text" id="in_date" readonly>
+    </div>
+    <div class="input-group">
+        <label id="lbl-att">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 7h10M7 12h10M7 17h6"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+            <span class="lbl-text">Att / Ref No.</span>
+        </label>
+        <div style="display:flex;align-items:stretch;gap:0;">
+            <span id="att_prefix_display" style="padding:9px 10px;background:#f0f4f8;border:1px solid #d9e2ec;border-right:none;border-radius:8px 0 0 8px;font-size:12px;font-weight:800;color:#102a43;white-space:nowrap;display:flex;align-items:center;letter-spacing:0.5px;">R1D2026</span>
+            <input type="text" id="in_att_suffix" placeholder="⏳" maxlength="6" readonly style="border-radius:0 8px 8px 0;flex:1;min-width:0;background:#f8fafc;color:#627d98;cursor:not-allowed;border-left:none;">
+        </div>
+    </div>
+    <div class="input-group">
+        <label id="lbl-from">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            <span class="lbl-text">From</span>
+        </label>
+        <select id="in_from" onchange="sync()">
+            <option value="M. Ahmad">M. Ahmad</option>
+            <option value="M. Adnan">M. Adnan</option>
+            <option value="Sohaib">Sohaib</option>
+            <option value="Salman">Salman</option>
+        </select>
+    </div>
+    <div class="input-group">
+        <label id="lbl-vno">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+            <span class="lbl-text">Customer VAT No.</span>
+        </label>
+        <input type="text" id="in_vno" placeholder="Enter Customer VAT No." oninput="sync()">
+    </div>
+    <div class="input-group" id="grp-mobile">
+        <label id="lbl-mobile">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="7" y="2" width="10" height="20" rx="2"/><circle cx="12" cy="18" r="1" fill="currentColor"/></svg>
+            <span class="lbl-text">No. (Mobile)</span>
+        </label>
+        <div style="display:flex;align-items:stretch;gap:0;">
+            <span style="padding:9px 10px;background:#f0f4f8;border:1px solid #d9e2ec;border-right:none;border-radius:8px 0 0 8px;font-size:13px;font-weight:800;color:#102a43;white-space:nowrap;display:flex;align-items:center;">05</span>
+            <input type="text" id="in_mobile_suffix" class="prefix-input" placeholder="XXXXXXXX" maxlength="8" oninput="onMobileInput(this);clearError('grp-mobile');sync()" style="border-radius:0 8px 8px 0;flex:1;min-width:0;border-left:none;" inputmode="numeric">
+        </div>
+        <div class="field-warn" id="warn-mobile">⚠ Valid 10-digit mobile starting with 05 is required</div>
+    </div>
+    <input type="hidden" id="in_disc" value="0">
+
+    <hr class="sidebar-sep">
+    <div class="sidebar-section-label">Products</div>
+    <div id="row-inputs"></div>
+
+    <button class="add-btn" id="add-product-btn" onclick="addRow()">+ Add Product</button>
+    <button class="save-pdf-btn" id="dl-btn" onclick="downloadPDF()">DOWNLOAD DELIVERY NOTE (PDF)</button>
+    <button class="save-pdf-btn secondary" id="new-btn" onclick="newDeliveryNote()">📄 New Delivery Note</button>
+    <div id="offline-bar" style="display:none;margin-top:10px;padding:8px 12px;background:#fff3cd;border:1px solid #ffc107;border-radius:6px;font-size:11px;font-weight:700;color:#856404;text-align:center;">⚠ Firebase offline — local save only</div>
+    </div><!-- /panel-editor -->
+
+    <div id="panel-history" style="display:none;flex-direction:column;flex:1;min-height:0;padding:0 18px 16px;">
+        <input id="hist-search" type="text" placeholder="Search..." oninput="debouncedHistSearch()"
+            style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #d9e2ec;border-radius:8px;font-size:12px;margin-bottom:8px;direction:ltr;">
+        <div style="overflow-y:auto;flex:1;border:1px solid #d9e2ec;border-radius:8px;">
+            <table style="width:100%;border-collapse:collapse;direction:ltr;">
+                <thead style="position:sticky;top:0;background:#f0f4f8;z-index:1;">
+                    <tr><th style="padding:8px 10px;text-align:left;font-weight:800;border-bottom:2px solid #d9e2ec;white-space:nowrap;font-size:11px;">DN #</th><th style="padding:8px 10px;text-align:left;font-weight:800;border-bottom:2px solid #d9e2ec;white-space:nowrap;font-size:11px;">Customer</th><th style="padding:8px 10px;text-align:left;font-weight:800;border-bottom:2px solid #d9e2ec;white-space:nowrap;font-size:11px;">Date</th><th style="padding:8px 10px;text-align:left;font-weight:800;border-bottom:2px solid #d9e2ec;white-space:nowrap;font-size:11px;">Saved</th></tr>
+                </thead>
+                <tbody id="hist-tbody">
+                    <tr><td colspan="4" style="padding:14px;text-align:center;color:#888;font-size:11px;">No records</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p style="font-size:10px;color:#aaa;margin:5px 0 0;text-align:center;">Last 200 · newest first</p>
+    </div>
+</div><!-- /controls -->
+
+<!-- AUTO-UPDATE POPUP -->
+<div id="update-overlay">
+    <div id="update-popup">
+        <button id="update-dismiss-btn" onclick="dismissUpdateBanner()" title="Dismiss">✕</button>
+        <div class="up-icon">🚀</div>
+        <div class="up-title" id="update-popup-title">Update Available!</div>
+        <div class="up-msg" id="update-banner-msg">Downloading the latest version in the background...</div>
+        <div class="up-progress" id="update-progress-bar-wrap">
+            <div class="up-progress-bar" id="update-progress-bar"></div>
+        </div>
+        <button id="update-install-btn" style="display:none;" onclick="installUpdate()">🔄 Restart &amp; Install Now</button>
+        <button id="update-later-btn" style="display:none;" onclick="dismissUpdateBanner()">Remind me later</button>
+    </div>
+</div>
+<div id="resize-handle"></div>
+
+<!-- DELIVERY NOTE SHEET -->
+<div id="page-wrap">
+<div class="invoice-sheet" id="quotation-sheet">
+
+    <!-- EN HEADER -->
+    <table class="header-table" id="header-en">
+        <tr>
+            <td width="40%">
+                <img id="logo-img-en" src="" style="max-height:100px;display:none;" alt="Raha Logo">
+                <span id="logo-fallback-en" style="font-size:22px;font-weight:800;color:var(--raha-blue);">Raha Co.</span>
+            </td>
+            <td style="text-align:right;color:var(--raha-blue);">
+                <div style="font-size:18px;font-weight:800;">شركة راها التجارية</div>
+                <div style="font-size:18px;font-weight:800;">Raha Co.</div>
+                <div class="vat-badge">VAT ID: 312689834600003</div>
+                <div style="font-size:10px;color:#486581;">+966 50 829 3053 | +966 53 691 0833</div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- AR HEADER -->
+    <table class="header-table" id="header-ar" style="display:none;">
+        <tr>
+            <td style="text-align:right;color:var(--raha-blue);direction:rtl;">
+                <div style="font-size:18px;font-weight:800;">شركة راها التجارية</div>
+                <div style="font-size:18px;font-weight:800;">Raha Co.</div>
+                <div class="vat-badge" id="ar-vat-badge">الرقم الضريبي: 312689834600003</div>
+                <div style="font-size:10px;color:#486581;direction:ltr;" id="ar-phone">+966 50 829 3053 | +966 53 691 0833</div>
+            </td>
+            <td width="40%" style="text-align:left;">
+                <img id="logo-img-ar" src="" style="max-height:100px;display:none;" alt="Raha Logo">
+                <span id="logo-fallback-ar" style="font-size:22px;font-weight:800;color:var(--raha-blue);">Raha Co.</span>
+            </td>
+        </tr>
+    </table>
+
+    <!-- DOCUMENT TITLE -->
+    <div class="doc-title" id="doc-title-en">Delivery Note</div>
+
+    <!-- EN META -->
+    <div class="meta-container" id="meta-en">
+        <table class="meta-table">
+            <tr>
+                <td class="label-cell">To :</td>
+                <td width="35%"><span id="out_cust" class="bold-print"></span></td>
+                <td class="label-cell">Date :</td>
+                <td width="35%"><span id="out_date"></span></td>
+            </tr>
+            <tr>
+                <td class="label-cell">Att :</td>
+                <td style="text-align:center;"><span id="out_att" class="bold-print"></span></td>
+                <td class="label-cell">From :</td>
+                <td><span id="out_from"></span></td>
+            </tr>
+            <tr>
+                <td class="label-cell">No. :</td>
+                <td><span id="out_mobile" class="bold-print"></span></td>
+                <td colspan="2"><b>Customer VAT No.</b> <span id="out_vno" style="margin-left:15px;"></span></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- AR DOCUMENT TITLE -->
+    <div class="doc-title" id="doc-title-ar" style="display:none;">إشعار التسليم</div>
+
+    <!-- AR META -->
+    <div class="meta-container" id="meta-ar" style="display:none;direction:rtl;">
+        <table class="meta-table">
+            <tr>
+                <td class="label-cell">إلى :</td>
+                <td width="35%"><span id="out_cust_ar" class="bold-print"></span></td>
+                <td class="label-cell">التاريخ :</td>
+                <td width="35%"><span id="out_date_ar"></span></td>
+            </tr>
+            <tr>
+                <td class="label-cell">الاهتمام :</td>
+                <td style="text-align:center;"><span id="out_att_ar" class="bold-print"></span></td>
+                <td class="label-cell">من :</td>
+                <td><span id="out_from_ar"></span></td>
+            </tr>
+            <tr>
+                <td class="label-cell">الهاتف :</td>
+                <td><span id="out_mobile_ar" class="bold-print"></span></td>
+                <td colspan="2"><b>الرقم الضريبي للعميل</b> <span id="out_vno_ar" style="margin-right:15px;"></span></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- INTRO -->
+    <p class="intro-text" id="intro-text">Please find the delivery note for your order.</p>
+
+    <!-- EN ITEMS TABLE -->
+    <table class="items-table" id="items-table-en">
+        <thead><tr>
+            <th width="35px">S/N</th><th width="20%">Brand</th>
+            <th width="20%">Item Code</th><th width="65px">Image</th><th width="30%">Description</th>
+            <th width="45px">Qty</th><th width="70px" class="price-col">Price</th><th width="80px" class="total-col">Total</th>
+        </tr></thead>
+        <tbody id="items-output-en"></tbody>
+    </table>
+
+    <!-- AR ITEMS TABLE -->
+    <table class="items-table" id="items-table-ar" style="display:none;direction:rtl;">
+        <thead><tr>
+            <th width="35px">م</th><th width="20%">الماركة</th>
+            <th width="20%">كود المنتج</th><th width="65px">صورة</th><th width="30%">الوصف</th>
+            <th width="45px">الكمية</th><th width="70px" class="price-col">السعر</th><th width="80px" class="total-col">الإجمالي</th>
+        </tr></thead>
+        <tbody id="items-output-ar"></tbody>
+    </table>
+
+    <!-- TOTALS hidden for Delivery Note -->
+    <div id="totals-wrap" style="display:none;">
+        <div class="total-line"><div class="total-lbl" id="lbl-subtotal">Subtotal (SR)</div><div class="total-val" id="out_subtotal">0.00</div></div>
+        <div class="total-line"><div class="total-lbl" id="lbl-vat">15% VAT (SR)</div><div class="total-val" id="out_vat">0.00</div></div>
+        <div class="total-line" style="color:var(--danger)" id="disc-row"><div class="total-lbl" id="lbl-disc-line">Discount (0%)</div><div class="total-val" id="out_disc_val">0.00</div></div>
+        <div class="total-line"><div class="total-lbl grand-total" id="lbl-grand">Total Inc. VAT (SR)</div><div class="total-val grand-total" id="out_grand">0.00</div></div>
+    </div>
+    <div style="clear:both;"></div>
+
+    <!-- SIGNATURE -->
+    <div class="terms-section" id="terms-section">
+        <div class="terms-title" id="terms-title">Customer Signature :</div>
+        <div style="margin-top:18px;padding-bottom:4px;border-bottom:1.5px solid #334e68;width:140px;">
+            &nbsp;
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="sheet-footer">
+        <span>Imam Saud Bin Abdulaziz Bin Mohammed Rd, An Nuzhah, Riyadh 18497</span>
+<span>www.rahaksa.com</span>
+    </div>
+
+</div>
+</div>
+
+<script>
+    const { ipcRenderer } = require('electron');
+
+    let isDirty = false;
+    ipcRenderer.on('request-close', () => {
+        const safe = !isDirty || confirm('You have unsaved changes. Close anyway?');
+        ipcRenderer.send('confirm-close', safe);
+    });
+    const path = require('path');
+    const fs   = require('fs');
+
+    let rowIdCounter = 0;
+    let imageData    = {};
+    let currentLang  = 'en';
+
+   // ── Arabic-Indic numeral converter — kept but NOT used (all numbers stay English per requirement) ──
+    function toArNums(str) { return String(str); } // Always return as-is (English numerals)
+    function n(val) { return String(val); }
+
+    const T = {
+        en: {
+            sidebarTitle:'Delivery Note Editor',
+            lblTo:'To :', lblDate:'Date :', lblAtt:'Att :', lblFrom:'From :',
+            lblVno:'Customer VAT No.', lblMobile:'No. (Mobile)', lblDisc:'Discount (%)',
+            addBtn:'+ Add Product', dlBtn:'DOWNLOAD DELIVERY NOTE (PDF)', newBtn:'📄 New Delivery Note',
+            dlBtnSaving:'Saving PDF...', dlBtnDone:'✓ PDF Saved!',
+            pasteZone:'Click & Paste', qty:'Qty', brand:'Brand',
+            code:'Code', desc:'Description', price:'Price (SR)', custom:'Custom',
+            intro:'Please find the delivery note for your order.',
+            subtotal:'Subtotal (SR)', vat:'15% VAT (SR)', disc:'Discount',
+            grand:'Total Inc. VAT (SR)',
+            termsTitle:'Customer Signature :',
+            toggleBtn:'🌐 Switch to Arabic | التبديل للعربية',
+            custPh:'Customer Name',
+            confirmRefresh:'Start a new delivery note? All current data will be cleared.',
+            dnBtn:'📦 Delivery Note | إشعار التسليم',
+            dnBtnActive:'📋 Switch to Quotation | عرض السعر',
+            dnSubLabel:'Delivery Note',
+            dnDlBtn:'DOWNLOAD DELIVERY NOTE (PDF)',
+            dnIntro:'Please find the delivery note for your order.'
+        },
+        ar: {
+            sidebarTitle:'محرر إشعار التسليم',
+            lblTo:'إلى :', lblDate:'التاريخ :', lblAtt:'الاهتمام :', lblFrom:'من :',
+            lblVno:'الرقم الضريبي للعميل', lblMobile:'الهاتف', lblDisc:'الخصم (%)',
+            addBtn:'+ إضافة منتج', dlBtn:'تحميل إشعار التسليم (PDF)', newBtn:'📄 إشعار تسليم جديد',
+            dlBtnSaving:'جاري الحفظ...', dlBtnDone:'✓ تم الحفظ!',
+            pasteZone:'انقر والصق الصورة', qty:'الكمية', brand:'الماركة',
+            code:'الكود', desc:'الوصف', price:'السعر (ريال)', custom:'مخصص',
+            intro:'يسرنا تقديم إشعار التسليم الخاص بطلبكم الكريم.',
+            subtotal:'المجموع (ريال)', vat:'ضريبة القيمة المضافة 15%', disc:'الخصم',
+            grand:'الإجمالي شامل الضريبة (ريال)',
+            termsTitle:'توقيع العميل :',
+            toggleBtn:'🌐 Switch to English | التبديل للإنجليزية',
+            custPh:'اسم العميل',
+            confirmRefresh:'بدء إشعار تسليم جديد؟ سيتم مسح جميع البيانات الحالية.',
+            dnBtn:'📦 Delivery Note | إشعار التسليم',
+            dnBtnActive:'📋 Switch to Quotation | عرض السعر',
+            dnSubLabel:'إشعار التسليم',
+            dnDlBtn:'تحميل إشعار التسليم (PDF)',
+            dnIntro:'يسرنا تقديم إشعار التسليم الخاص بطلبكم الكريم.'
+        }
+    };
+
+    // ── FIREBASE: fetch next DN number (Delivery Note) ──
+    async function fetchNextDN() {
+        try {
+            const result = await ipcRenderer.invoke('get-next-dn');
+            if (result.success) {
+                const padded = String(result.value).padStart(3, '0');
+                document.getElementById('in_att_suffix').value = padded;
+                sync();
+            }
+        } catch (e) { /* silent fail */ }
+    }
+
+    // ── 1) REFRESH / NEW QUOTATION — hang-free ──
+    function refreshForm() {
+        // Clear inputs
+        document.getElementById('in_cust').value           = '';
+        document.getElementById('in_att_suffix').value     = '';
+        document.getElementById('in_vno').value            = '';
+        document.getElementById('in_mobile_suffix').value  = '';
+        document.getElementById('in_disc').value           = '0';
+        clearError('grp-cust');
+        clearError('grp-mobile');
+        document.getElementById('in_from').selectedIndex = 0;
+        // Safely remove all row editors one by one (avoids innerHTML hang with contenteditable)
+        const container = document.getElementById('row-inputs');
+        while (container.firstChild) { container.removeChild(container.firstChild); }
+        imageData    = {};
+        rowIdCounter = 0;
+        setTodayDate();
+        sync();
+        addRow();
+        fetchNextDN();   // auto-fill DN number for new delivery note
+    }
+
+    // ── NEW DELIVERY NOTE BUTTON ──
+    function newDeliveryNote() {
+        const btn = document.getElementById('dl-btn');
+        if (btn.disabled) return;
+        const t = T[currentLang];
+        if (isDirty && !confirm(t.confirmRefresh)) return;
+        isDirty = false;
+        refreshForm();
+    }
+
+    // ── 3) ZOOM ──
+    let zoomLevel = 1.0;
+    function zoomIn()  { zoomLevel = Math.min(parseFloat((zoomLevel + 0.1).toFixed(1)), 2.0); applyZoom(); }
+    function zoomOut() { zoomLevel = Math.max(parseFloat((zoomLevel - 0.1).toFixed(1)), 0.4); applyZoom(); }
+    function applyZoom() {
+        document.getElementById('page-wrap').style.zoom = zoomLevel;
+        document.getElementById('zoom-display').innerText = Math.round(zoomLevel * 100) + '%';
+    }
+
+    // ── DELIVERY NOTE — always active in deliverynote.html ──
+    let isDeliveryNote = true;
+    function toggleDeliveryNote() { /* no-op in deliverynote.html */ }
+
+    // ── LANGUAGE SETTER ──
+    function setLang(lang) {
+        currentLang = lang || 'en';
+        const isAr = currentLang === 'ar';
+        const t = T[currentLang];
+
+        document.body.classList.toggle('arabic', isAr);
+        document.documentElement.setAttribute('dir', isAr ? 'rtl' : 'ltr');
+
+        document.getElementById('sidebar-title').innerText    = t.sidebarTitle;
+        if (document.querySelector('.sidebar-header-card .subtitle')) {
+            document.querySelector('.sidebar-header-card .subtitle').innerText = isAr ? 'إنشاء وتخصيص إشعار التسليم' : 'Create and customize your delivery note';
+        }
+        // BUG #9 FIX: target only the .lbl-text span inside each label — NOT the label
+        // itself — so the SVG icon child is never destroyed by innerText assignment.
+        document.querySelector('#lbl-to .lbl-text').innerText     = t.lblTo;
+        document.querySelector('#lbl-date .lbl-text').innerText   = t.lblDate;
+        document.querySelector('#lbl-att .lbl-text').innerText    = t.lblAtt;
+        document.querySelector('#lbl-from .lbl-text').innerText   = t.lblFrom;
+        document.querySelector('#lbl-vno .lbl-text').innerText    = t.lblVno;
+        document.querySelector('#lbl-mobile .lbl-text').innerText = t.lblMobile;
+        document.getElementById('add-product-btn').innerText  = t.addBtn;
+        document.getElementById('dl-btn').innerText           = t.dnDlBtn;
+        document.getElementById('new-btn').innerText          = t.newBtn;
+        document.getElementById('in_cust').placeholder        = t.custPh;
+
+        // Always Delivery Note titles and intro
+        document.getElementById('doc-title-en').innerText = 'Delivery Note';
+        document.getElementById('doc-title-ar').innerText = 'إشعار التسليم';
+        document.getElementById('intro-text').innerText   = t.dnIntro;
+
+        document.getElementById('header-en').style.display       = isAr ? 'none' : '';
+        document.getElementById('header-ar').style.display       = isAr ? '' : 'none';
+        document.getElementById('doc-title-en').style.display    = isAr ? 'none' : '';
+        document.getElementById('doc-title-ar').style.display    = isAr ? '' : 'none';
+        document.getElementById('meta-en').style.display         = isAr ? 'none' : '';
+        document.getElementById('meta-ar').style.display         = isAr ? '' : 'none';
+        document.getElementById('items-table-en').style.display  = isAr ? 'none' : '';
+        document.getElementById('items-table-ar').style.display  = isAr ? '' : 'none';
+
+        document.getElementById('lbl-subtotal').innerText = t.subtotal;
+        document.getElementById('lbl-vat').innerText      = t.vat;
+        document.getElementById('lbl-grand').innerText    = t.grand;
+
+        document.getElementById('terms-title').innerText    = currentLang === 'ar' ? 'توقيع العميل :' : 'Customer Signature :';
+
+        document.getElementById('terms-section').style.direction = isAr ? 'rtl' : 'ltr';
+        document.getElementById('terms-section').style.textAlign = isAr ? 'right' : 'left';
+
+        // Keep VAT and phone always in English numerals (as requested)
+        if (isAr) {
+            document.getElementById('ar-vat-badge').innerText = 'الرقم الضريبي: 312689834600003';
+            document.getElementById('ar-phone').innerText     = '+966 50 829 3053 | +966 53 691 0833';
+        }
+
+        document.querySelectorAll('.row-editor').forEach(ed => {
+            ed.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.dataset.key;
+                if (t[key] !== undefined) el.innerText = t[key];
+            });
+        });
+
+        sync();
+    }
+
+    // ── LOGO LOADER ──
+    function loadLogo() {
+        const candidates = [
+            path.join(process.resourcesPath || '', 'Logo', 'logo.png'),
+            path.join(__dirname, 'Logo', 'logo.png')
+        ];
+        const logoPath = candidates.find(p => fs.existsSync(p));
+        if (logoPath) {
+            const b64 = 'data:image/png;base64,' + fs.readFileSync(logoPath).toString('base64');
+            ['logo-img-en','logo-img-ar'].forEach(id => {
+                document.getElementById(id).src = b64;
+                document.getElementById(id).style.display = 'block';
+            });
+            document.getElementById('logo-fallback-en').style.display = 'none';
+            document.getElementById('logo-fallback-ar').style.display = 'none';
+        }
+    }
+
+    // ── DATE ──
+    function setTodayDate() {
+        const today = new Date();
+        const formatted = String(today.getDate()).padStart(2,'0') + '/' + String(today.getMonth()+1).padStart(2,'0') + '/' + today.getFullYear();
+        document.getElementById('in_date').value         = formatted;
+        document.getElementById('out_date').innerText    = formatted;
+        document.getElementById('out_date_ar').innerText = formatted; // Always English numerals
+    }
+
+    // ── QTY HELPERS ──
+    function setQty(id, val, element) {
+        document.getElementById(`qty-val-${id}`).value = val;
+        element.parentElement.querySelectorAll('.qty-circle').forEach(c => c.classList.remove('active'));
+        element.classList.add('active');
+        sync();
+    }
+    function toggleCustom(id) {
+        const input = document.getElementById(`qty-val-${id}`);
+        input.style.display = input.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // ── IMAGE PASTE ──
+    function handlePaste(event, id) {
+        const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+        for (let item of items) {
+            if (item.kind === 'file') {
+                // Prevent browser's default contenteditable paste which inserts
+                // a second copy of the image as a DOM node before FileReader resolves.
+                event.preventDefault();
+                const zone = event.currentTarget;
+                zone.innerHTML = '';
+                const reader = new FileReader();
+                reader.onload = e => {
+                    imageData[id] = e.target.result;
+                    zone.innerHTML = `<img src="${e.target.result}" style="max-height:50px;">`;
+                    sync();
+                };
+                reader.readAsDataURL(item.getAsFile());
+                break; // only handle first file item
+            }
+        }
+    }
+
+    // ── ROW MANAGEMENT ──
+    function deleteRow(id) {
+        const el = document.getElementById(`row-${id}`);
+        if (el) el.remove();
+        delete imageData[id];
+        sync();
+    }
+
+    function addRow() {
+        const id = rowIdCounter++;
+        const t  = T[currentLang];
+        const div = document.createElement('div');
+        div.className = 'row-editor';
+        div.id = `row-${id}`;
+        div.innerHTML = `
+            <button class="delete-row" onclick="deleteRow(${id})">✕</button>
+            <label data-key="pasteZone" style="font-size:10px;font-weight:700;color:#627d98;text-transform:uppercase;letter-spacing:0.5px;">${t.pasteZone}</label>
+            <div class="paste-zone" contenteditable="true" onpaste="handlePaste(event,${id})">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9fb3c8" stroke-width="2"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+                <span data-key="pasteZone">${t.pasteZone}</span>
+            </div>
+            <label data-key="qty" style="margin-top:10px;font-size:10px;font-weight:700;color:#627d98;text-transform:uppercase;letter-spacing:0.5px;">${t.qty}</label>
+            <div class="qty-container">
+                <div class="qty-circle active" onclick="setQty(${id},1,this)">1</div>
+                <div class="qty-circle" onclick="setQty(${id},2,this)">2</div>
+                <div class="qty-circle" onclick="setQty(${id},3,this)">3</div>
+                <div class="qty-circle" onclick="setQty(${id},4,this)">4</div>
+                <div class="qty-circle" onclick="setQty(${id},5,this)">5</div>
+                <div class="qty-circle" onclick="setQty(${id},6,this)">6</div>
+                <div class="qty-circle" onclick="setQty(${id},7,this)">7</div>
+                <div class="qty-circle" onclick="setQty(${id},8,this)">8</div>
+                <div class="qty-circle" onclick="setQty(${id},9,this)">9</div>
+                <div class="qty-custom-btn" onclick="toggleCustom(${id})" data-key="custom">${t.custom}</div>
+            </div>
+            <input type="number" class="r-qty" id="qty-val-${id}" value="1" oninput="sync()" style="display:none;margin-bottom:10px;">
+            <label data-key="brand" style="font-size:10px;font-weight:700;color:#627d98;text-transform:uppercase;letter-spacing:0.5px;">${t.brand}</label>
+            <input type="text" class="r-brand" list="brand-list-${id}" placeholder="Select or enter brand" oninput="sync()">
+            <datalist id="brand-list-${id}">
+                 <option value="TREDEX"><option value="RAHA"><option value="Stamina"><option value="WSAN"><option value="LUXI"><option value="GROHE"><option value="HANS MARK">
+            </datalist>
+            <label data-key="code" style="font-size:10px;font-weight:700;color:#627d98;text-transform:uppercase;letter-spacing:0.5px;">${t.code}</label>
+            <input type="text" class="r-code" placeholder="" oninput="sync()">
+            <label data-key="desc" style="font-size:10px;font-weight:700;color:#627d98;text-transform:uppercase;letter-spacing:0.5px;">${t.desc}</label>
+            <input type="text" class="r-desc" placeholder="" oninput="sync()">
+            <input type="hidden" class="r-price" value="0">
+        `;
+        document.getElementById('row-inputs').appendChild(div);
+        sync();
+    }
+
+    // ISSUE #13 FIX: debounce sync in deliverynote
+    let _syncTimer = null;
+    function sync() {
+        clearTimeout(_syncTimer);
+        _syncTimer = setTimeout(_syncNow, 80);
+    }
+
+    // ── SYNC (actual work) ──
+    function _syncNow() {
+        const cust    = document.getElementById('in_cust').value;
+        const suffix  = document.getElementById('in_att_suffix').value;
+        const attFull = (isDeliveryNote ? 'R1D2026' : 'R1Q2026') + suffix;
+        const from    = document.getElementById('in_from').value;
+        const vno     = document.getElementById('in_vno').value;
+        const dateVal = document.getElementById('in_date').value;
+        const discPerc= parseFloat(document.getElementById('in_disc').value) || 0;
+        const t       = T[currentLang];
+
+        const mobileSuffix = document.getElementById('in_mobile_suffix').value;
+        const mobileVal    = mobileSuffix ? '05' + mobileSuffix : '';
+        // EN outputs
+        document.getElementById('out_cust').innerText   = cust;
+        document.getElementById('out_att').innerText    = attFull;
+        document.getElementById('out_from').innerText   = from;
+        document.getElementById('out_vno').innerText    = vno;
+        document.getElementById('out_date').innerText   = dateVal;
+        document.getElementById('out_mobile').innerText = mobileVal;
+
+        // AR outputs
+        document.getElementById('out_cust_ar').innerText   = cust;
+        document.getElementById('out_att_ar').innerText    = attFull;
+        document.getElementById('out_from_ar').innerText   = from;
+        document.getElementById('out_vno_ar').innerText    = vno;
+        document.getElementById('out_date_ar').innerText   = dateVal;
+        document.getElementById('out_mobile_ar').innerText = mobileVal;
+
+        const editors = document.querySelectorAll('.row-editor');
+
+        // ── Fix 2: Detect duplicate item codes ──
+        const codeSeen = {};
+        editors.forEach(ed => {
+            const code = ed.querySelector('.r-code').value.trim();
+            if (code) codeSeen[code] = (codeSeen[code] || 0) + 1;
+        });
+
+        let subtotal = 0;
+        let rowsHtml = '';
+
+        editors.forEach((ed, idx) => {
+            const id    = ed.id.split('-')[1];
+            const qty   = parseFloat(ed.querySelector('.r-qty').value) || 0;
+            const price = parseFloat(ed.querySelector('.r-price').value) || 0;
+            const total = qty * price;
+            subtotal += total;
+            const img      = imageData[id] ? `<img src="${imageData[id]}" style="max-height:45px;">` : '';
+            const qtyDisp  = String(Math.round(qty)).padStart(2, '0');
+            const priceDisp= price.toFixed(2);
+            const totalDisp= total.toLocaleString(undefined,{minimumFractionDigits:2});
+            const snDisp   = idx + 1;
+            const code     = ed.querySelector('.r-code').value.trim();
+            const isDup    = code && codeSeen[code] > 1;
+
+            // Highlight duplicate in sidebar editor
+            ed.style.border     = isDup ? '2px solid #e67e22' : '1px solid #d9e2ec';
+            ed.style.background = isDup ? '#fff8f0' : '#f8fafc';
+
+            // Show/hide ⚠️ badge inside the editor
+            let badge = ed.querySelector('.dup-badge');
+            if (isDup) {
+                if (!badge) {
+                    badge = document.createElement('div');
+                    badge.className = 'dup-badge';
+                    badge.style.cssText = 'position:absolute;left:10px;top:8px;background:#e67e22;color:white;font-size:9px;font-weight:bold;padding:2px 7px;border-radius:3px;';
+                    badge.innerText = '⚠ Duplicate Code';
+                    ed.appendChild(badge);
+                }
+            } else {
+                if (badge) badge.remove();
+            }
+
+            const rowStyle = isDup ? 'background:#fff3e0;' : '';
+            const codeStyle = isDup ? 'font-weight:800;color:#e67e22;' : 'font-weight:800;';
+
+            rowsHtml += `<tr style="${rowStyle}">
+                <td>${snDisp}</td>
+                <td style="font-weight:700;">${ed.querySelector('.r-brand').value}</td>
+                <td style="${codeStyle}">${code}${isDup ? ' ⚠' : ''}</td>
+                <td>${img}</td>
+                <td>${ed.querySelector('.r-desc').value}</td>
+                <td style="font-weight:800;">${qtyDisp}</td>
+                <td class="price-col" style="font-weight:800;">${priceDisp}</td>
+                <td class="total-col" style="font-weight:bold;">${totalDisp}</td>
+            </tr>`;
+        });
+
+        document.getElementById('items-output-en').innerHTML = rowsHtml;
+        document.getElementById('items-output-ar').innerHTML = rowsHtml;
+
+        const discAmount  = subtotal * (discPerc / 100);
+        const discounted  = subtotal - discAmount;
+        const vat         = discounted * 0.15;
+        const grandTotal  = discounted + vat;
+
+        const fmt = v => v.toLocaleString(undefined,{minimumFractionDigits:2});
+
+        document.getElementById('out_subtotal').innerText = fmt(subtotal);
+        document.getElementById('out_vat').innerText      = fmt(vat);
+        document.getElementById('out_grand').innerText    = fmt(grandTotal);
+
+        // Show/hide discount row
+        const discRow = document.getElementById('disc-row');
+        if (discPerc > 0) {
+            discRow.style.display = 'flex';
+            document.getElementById('lbl-disc-line').innerText = `${t.disc} (${discPerc}%)`;
+            document.getElementById('out_disc_val').innerText  = '-' + fmt(discAmount);
+        } else {
+            discRow.style.display = 'none';
+        }
+    }
+
+    // ── VALIDATION HELPERS ──
+    function onMobileInput(el) {
+        // Allow digits only
+        el.value = el.value.replace(/\D/g, '').slice(0, 8);
+    }
+    function clearError(groupId) {
+        document.getElementById(groupId).classList.remove('field-error');
+    }
+    function validateForm() {
+        let valid = true;
+        const cust   = document.getElementById('in_cust').value.trim();
+        const mobile = document.getElementById('in_mobile_suffix').value.trim();
+
+        if (!cust) {
+            document.getElementById('grp-cust').classList.add('field-error');
+            document.getElementById('in_cust').focus();
+            valid = false;
+        } else {
+            clearError('grp-cust');
+        }
+        if (mobile.length !== 8) {
+            document.getElementById('grp-mobile').classList.add('field-error');
+            if (valid) document.getElementById('in_mobile_suffix').focus();
+            valid = false;
+        } else {
+            clearError('grp-mobile');
+        }
+        return valid;
+    }
+
+    // ── PDF DOWNLOAD — filename: CustomerName_R1D2026XXX ──
+    async function downloadPDF() {
+        if (!validateForm()) return;   // Block if mandatory fields missing
+
+        const btn         = document.getElementById('dl-btn');
+        const t           = T[currentLang];
+        const isAr        = currentLang === 'ar';
+        const custName    = document.getElementById('in_cust').value.trim();
+        const attSuffix   = document.getElementById('in_att_suffix').value.trim();
+        const attFull     = (isDeliveryNote ? 'R1D2026' : 'R1Q2026') + attSuffix;
+        const docType     = isDeliveryNote ? 'DeliveryNote' : 'Quotation';
+        const baseName    = custName && attSuffix ? `${custName}_${attFull}_${docType}` : (custName || attFull || docType);
+
+        btn.innerText = t.dlBtnSaving;
+        btn.style.opacity = '0.5';
+        btn.disabled = true;
+
+        document.getElementById('controls').style.display      = 'none';
+        document.getElementById('page-wrap').style.marginLeft  = '0';
+        document.getElementById('page-wrap').style.marginRight = '0';
+
+        // ISSUE #25 FIX: wait longer to ensure sidebar is fully hidden before PDF capture
+        await new Promise(r => setTimeout(r, 500));
+
+        const result = await ipcRenderer.invoke('save-dn-pdf', baseName);
+
+        document.getElementById('controls').style.display      = 'block';
+        // Restore actual current sidebar width — not the hardcoded 340px default.
+        const sidebarW = document.getElementById('controls').offsetWidth;
+        document.getElementById('page-wrap').style.marginLeft  = isAr ? '0'                    : (sidebarW + 20) + 'px';
+        document.getElementById('page-wrap').style.marginRight = isAr ? (sidebarW + 20) + 'px' : '0';
+
+        if (result.success) {
+            isDirty = false;
+            _historyCache = null; // ISSUE #12 FIX: invalidate cache after save
+            btn.innerText = t.dlBtnDone;
+            setTimeout(() => { btn.innerText = t.dlBtn; btn.style.opacity='1'; btn.disabled=false; }, 2500);
+            if (isDeliveryNote) {
+                // ── Firebase: increment DN counter ──
+                ipcRenderer.invoke('increment-dn').catch(() => {});
+                // ── Firebase: save delivery note record ──
+                try {
+                    const dnRecord = {
+                        dnNo         : attFull,
+                        customerName : document.getElementById('in_cust').value.trim(),
+                        mobile       : '05' + (document.getElementById('in_mobile_suffix').value.trim()),
+                        date         : document.getElementById('out_date') ? document.getElementById('out_date').innerText : new Date().toLocaleDateString(),
+                        from         : document.getElementById('in_from').value,
+                        savedAt      : new Date().toISOString()
+                    };
+                    ipcRenderer.invoke('save-dn-record', dnRecord).catch(() => {});
+                } catch(e) { /* silent fail */ }
+            } else {
+                // ── Firebase: increment quotation counter ──
+                ipcRenderer.invoke('increment-att').catch(() => {});
+                // ── Firebase: save quotation record ──
+                try {
+                    const qRecord = {
+                        customerName : document.getElementById('in_cust').value.trim(),
+                        mobile       : '05' + (document.getElementById('in_mobile_suffix').value.trim()),
+                        attNo        : attFull,
+                        date         : document.getElementById('out_date') ? document.getElementById('out_date').innerText : new Date().toLocaleDateString(),
+                        from         : document.getElementById('in_from').value,
+                        totalVAT     : document.getElementById('out_grand').innerText,
+                        savedAt      : new Date().toISOString()
+                    };
+                    ipcRenderer.invoke('save-quotation-record', qRecord).catch(() => {});
+                } catch(e) { /* silent fail */ }
+            }
+        } else {
+            btn.innerText = t.dlBtn;
+            btn.style.opacity = '1';
+            btn.disabled = false;
+        }
+    }
+
+    // ── SIDEBAR RESIZE ──
+    (function() {
+        const handle   = document.getElementById('resize-handle');
+        const sidebar  = document.getElementById('controls');
+        const pageWrap = document.getElementById('page-wrap');
+        const isArabic = () => document.body.classList.contains('arabic');
+        let dragging = false;
+
+        handle.addEventListener('mousedown', e => {
+            dragging = true;
+            handle.classList.add('dragging');
+            document.body.style.userSelect = 'none';
+            document.body.style.cursor = 'col-resize';
+        });
+
+        document.addEventListener('mousemove', e => {
+            if (!dragging) return;
+            let newWidth;
+            if (isArabic()) {
+                newWidth = window.innerWidth - e.clientX;
+            } else {
+                newWidth = e.clientX;
+            }
+            newWidth = Math.max(260, Math.min(600, newWidth));
+            sidebar.style.width = newWidth + 'px';
+            if (isArabic()) {
+                handle.style.right = newWidth + 'px';
+                handle.style.left  = 'auto';
+                pageWrap.style.marginRight = (newWidth + 20) + 'px';
+                pageWrap.style.marginLeft  = '0';
+            } else {
+                handle.style.left  = newWidth + 'px';
+                handle.style.right = 'auto';
+                pageWrap.style.marginLeft  = (newWidth + 20) + 'px';
+                pageWrap.style.marginRight = '0';
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (!dragging) return;
+            dragging = false;
+            handle.classList.remove('dragging');
+            document.body.style.userSelect = '';
+            document.body.style.cursor = '';
+        });
+    })();
+
+
+    // ── AUTO-UPDATE POPUP ──
+    (function() {
+        const { ipcRenderer } = require('electron');
+
+        ipcRenderer.on('update-status', (event, info) => {
+            const overlay     = document.getElementById('update-overlay');
+            const title       = document.getElementById('update-popup-title');
+            const msg         = document.getElementById('update-banner-msg');
+            const installBtn  = document.getElementById('update-install-btn');
+            const laterBtn    = document.getElementById('update-later-btn');
+            const progressWrap= document.getElementById('update-progress-bar-wrap');
+            const progressBar = document.getElementById('update-progress-bar');
+
+            if (info.state === 'downloading') {
+                title.innerText = '🔄 Downloading Update...';
+                const pct = info.percent != null ? info.percent : 0;
+                msg.innerText = `Version ${info.version || 'new'} is downloading — ${pct}% complete. Please wait.`;
+                progressWrap.style.display = 'block';
+                progressBar.style.width = pct + '%';
+                installBtn.style.display = 'none';
+                laterBtn.style.display = 'none';
+            } else if (info.state === 'ready') {
+                title.innerText = '✅ Update Ready!';
+                msg.innerText = `Version ${info.version} has been downloaded.
+Click below to restart and apply the update.`;
+                progressWrap.style.display = 'none';
+                installBtn.style.display = 'block';
+                laterBtn.style.display = 'block';
+            }
+
+            overlay.classList.add('visible');
+        });
+
+        window.installUpdate = function() {
+            ipcRenderer.send('install-update-now');
+        };
+
+        window.dismissUpdateBanner = function() {
+            document.getElementById('update-overlay').classList.remove('visible');
+        };
+    })();
+
+    document.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            // Only save when Editor tab is active — not while browsing History
+            if (document.getElementById('panel-editor').style.display !== 'none') {
+                downloadPDF();
+            }
+        }
+    });
+    document.querySelectorAll('input,select,textarea').forEach(el => {
+        el.addEventListener('input',  () => { isDirty = true; });
+        el.addEventListener('change', () => { isDirty = true; });
+    });
+    async function checkFirebase() {
+        try {
+            const r = await ipcRenderer.invoke('ping-firebase');
+            document.getElementById('offline-bar').style.display = r.success ? 'none' : 'block';
+        } catch(e) { document.getElementById('offline-bar').style.display = 'block'; }
+    }
+    checkFirebase();
+
+    // ISSUE #12 FIX: cache history rows in deliverynote
+    let _historyCache = null;
+    let _historyCacheTime = 0;
+    const HISTORY_CACHE_MS = 30000;
+
+    let _histSearchTimer = null;
+    function debouncedHistSearch() {
+        clearTimeout(_histSearchTimer);
+        _histSearchTimer = setTimeout(() => loadHistory(false), 220);
+    }
+
+    function switchTab(tab) {
+        const isHist = tab === 'history';
+        document.getElementById('panel-editor').style.display  = isHist ? 'none'  : 'block';
+        document.getElementById('panel-history').style.display = isHist ? 'flex'  : 'none';
+        document.getElementById('tab-editor').style.background  = isHist ? '#d9e2ec' : '#102a43';
+        document.getElementById('tab-editor').style.color       = isHist ? '#486581' : 'white';
+        document.getElementById('tab-history').style.background = isHist ? '#102a43' : '#d9e2ec';
+        document.getElementById('tab-history').style.color      = isHist ? 'white'   : '#486581';
+        if (isHist) loadHistory(false);
+    }
+    async function loadHistory(forceRefresh = false) {
+        const tbody  = document.getElementById('hist-tbody');
+        const search = (document.getElementById('hist-search').value||'').toLowerCase().trim();
+        const now = Date.now();
+        if (!forceRefresh && _historyCache && (now - _historyCacheTime) < HISTORY_CACHE_MS) {
+            renderHistoryRows(_historyCache, tbody, search);
+            return;
+        }
+        tbody.innerHTML = '<tr><td colspan="4" style="padding:14px;text-align:center;color:#888;font-size:11px;">Loading...</td></tr>';
+        try {
+            const res = await ipcRenderer.invoke('get-history', 'delivery');
+            if (!res.success) {
+                tbody.innerHTML = `<tr><td colspan="4" style="padding:14px;text-align:center;color:#d32f2f;font-size:11px;">Error: ${res.reason}</td></tr>`;
+                return;
+            }
+            _historyCache     = res.rows;
+            _historyCacheTime = Date.now();
+            renderHistoryRows(res.rows, tbody, search);
+        } catch(e) {
+            tbody.innerHTML = '<tr><td colspan="4" style="padding:14px;text-align:center;color:#d32f2f;font-size:11px;">Load failed</td></tr>';
+        }
+    }
+    function renderHistoryRows(rows, tbody, search) {
+        const filtered = search ? rows.filter(r => JSON.stringify(r).toLowerCase().includes(search)) : rows;
+        if (!filtered.length) {
+            tbody.innerHTML = '<tr><td colspan="4" style="padding:14px;text-align:center;color:#888;font-size:11px;">No records</td></tr>';
+            return;
+        }
+        tbody.innerHTML = filtered.map(r=>`<tr style="border-bottom:1px solid #f0f4f8;">
+            <td style="padding:7px 10px;font-size:11px;">${r.dnNo||''}</td>
+            <td style="padding:7px 10px;font-size:11px;">${r.customerName||''}</td>
+            <td style="padding:7px 10px;font-size:11px;">${r.date||''}</td>
+            <td style="padding:7px 10px;font-size:10px;color:#888;">${r.savedAt?r.savedAt.slice(0,10):''}</td>
+        </tr>`).join('');
+    }
+
+    loadLogo();
+    setTodayDate();
+    addRow();
+    fetchNextDN();
+    document.getElementById('quotation-sheet').classList.add('dn-mode');
+    document.getElementById('att_prefix_display').innerText = 'R1D2026';
+    const savedLang = localStorage.getItem('rahaLang') || 'ar';
+    setLang(savedLang);
+</script>
+</body>
+</html>

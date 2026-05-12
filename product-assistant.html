@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Product Assistant — Raha Trading Co.</title>
+
+<style>
+/* ── FONTS ── */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Noto+Sans+Arabic:wght@300;400;500;600;700&display=swap');
+
+/* ── CSS VARIABLES ── */
+:root {
+  --teal:        #0d7a6e;
+  --teal-light:  #12927f;
+  --teal-dark:   #095f57;
+  --teal-bg:     #eaf5f3;
+  --navy:        #1a2940;
+  --navy-soft:   #2c3e5a;
+  --bg:          #f4f6f9;
+  --bg-card:     #ffffff;
+  --border:      #e0e5ec;
+  --border-soft: #edf0f5;
+  --text:        #1a2940;
+  --text-muted:  #6b7a94;
+  --text-light:  #9aa5b8;
+  --success:     #16a34a;
+  --success-bg:  #dcfce7;
+  --warning:     #d97706;
+  --danger:      #dc2626;
+  --shadow-sm:   0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:   0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04);
+  --shadow-lg:   0 10px 30px rgba(0,0,0,.1), 0 4px 10px rgba(0,0,0,.05);
+  --radius:      10px;
+  --radius-lg:   14px;
+  --font-en:     'DM Sans', sans-serif;
+  --font-ar:     'Noto Sans Arabic', sans-serif;
+}
+
+/* ── RESET ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+body {
+  font-family: var(--font-en);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100%;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+body.arabic { font-family: var(--font-ar); direction: rtl; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #c8d0df; border-radius: 99px; }
+
+/* ═══════════════════════════════════
+   HEADER
+════════════════════════════════════ */
+.header {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  -webkit-app-region: drag;
+}
+.logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  -webkit-app-region: no-drag;
+}
+.logo-box {
+  width: 44px; height: 44px;
+  border: 2.5px solid var(--navy);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 900; color: var(--navy);
+  letter-spacing: -1px;
+}
+.logo-text { line-height: 1.25; }
+.logo-text .ar { font-family: var(--font-ar); font-size: 13px; font-weight: 700; color: var(--navy); }
+.logo-text .en { font-size: 10px; font-weight: 500; color: var(--text-muted); letter-spacing: .08em; }
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  -webkit-app-region: no-drag;
+}
+.lang-btn {
+  padding: 5px 13px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all .18s;
+}
+.lang-btn.active {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+}
+.lang-btn:hover:not(.active) { border-color: var(--teal); color: var(--teal); }
+.globe-btn {
+  width: 36px; height: 36px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all .18s;
+}
+.globe-btn:hover { border-color: var(--teal); color: var(--teal); }
+.header-divider { width: 1px; height: 22px; background: var(--border); }
+
+/* ═══════════════════════════════════
+   BANNER
+════════════════════════════════════ */
+.banner {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  overflow: hidden;
+  position: relative;
+}
+.banner-left { display: flex; align-items: center; gap: 18px; z-index: 1; }
+.banner-icon {
+  width: 62px; height: 62px;
+  background: var(--teal);
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(13,122,110,.3);
+  flex-shrink: 0;
+}
+.banner-icon svg { width: 34px; height: 34px; }
+.banner-title { font-size: 22px; font-weight: 800; color: var(--navy); letter-spacing: -.3px; }
+.banner-sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+.banner-image {
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 340px;
+  background: linear-gradient(to right, var(--bg-card) 0%, transparent 25%),
+              url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 88"><rect width="340" height="88" fill="%23d4e9e7"/><circle cx="270" cy="30" r="22" fill="%23b2d8d4" opacity=".6"/><rect x="180" y="20" width="60" height="55" rx="8" fill="%23c8e0dc" opacity=".5"/></svg>') center/cover;
+}
+body.arabic .banner { flex-direction: row-reverse; }
+body.arabic .banner-image { right: auto; left: 0; background: linear-gradient(to left, var(--bg-card) 0%, transparent 25%), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 88"><rect width="340" height="88" fill="%23d4e9e7"/></svg>') center/cover; }
+
+/* ═══════════════════════════════════
+   MAIN LAYOUT
+════════════════════════════════════ */
+.main-wrap {
+  display: flex;
+  gap: 20px;
+  padding: 22px 28px;
+  align-items: flex-start;
+  min-height: calc(100vh - 150px);
+}
+.col-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.col-side { width: 290px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; }
+
+/* ═══════════════════════════════════
+   CARD BASE
+════════════════════════════════════ */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+.card-header {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+/* ═══════════════════════════════════
+   SEARCH CARD
+════════════════════════════════════ */
+.search-card { padding: 20px; }
+.search-label { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 12px; }
+.search-row { display: flex; gap: 10px; align-items: center; }
+.search-select-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+.search-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0 36px 0 14px;
+  height: 44px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  outline: none;
+  min-width: 140px;
+  transition: border-color .18s;
+}
+.search-select:focus { border-color: var(--teal); }
+.search-select-wrap::after {
+  content: '';
+  position: absolute;
+  right: 12px; top: 50%;
+  transform: translateY(-50%);
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid var(--text-muted);
+  pointer-events: none;
+}
+body.arabic .search-select-wrap::after { right: auto; left: 12px; }
+.search-input-wrap { flex: 1; position: relative; }
+.search-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 44px 0 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  background: var(--bg-card);
+  transition: border-color .18s, box-shadow .18s;
+}
+.search-input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(13,122,110,.1); }
+.search-clear {
+  position: absolute;
+  right: 14px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  cursor: pointer; color: var(--text-light);
+  display: none; padding: 2px;
+  line-height: 1;
+  font-size: 16px;
+  transition: color .15s;
+}
+.search-clear:hover { color: var(--danger); }
+.search-clear.visible { display: block; }
+body.arabic .search-input { padding: 0 16px 0 44px; }
+body.arabic .search-clear { right: auto; left: 14px; }
+.search-btn {
+  height: 44px;
+  padding: 0 22px;
+  background: var(--teal);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+  transition: background .18s, transform .1s, box-shadow .18s;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(13,122,110,.3);
+}
+.search-btn:hover { background: var(--teal-light); box-shadow: 0 4px 12px rgba(13,122,110,.35); }
+.search-btn:active { transform: scale(.97); }
+.search-hint { font-size: 12px; color: var(--text-light); margin-top: 10px; }
+
+/* RESULTS LIST */
+.results-dropdown {
+  margin-top: 10px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: none;
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-md);
+}
+.results-dropdown.visible { display: block; }
+.result-item {
+  padding: 11px 16px;
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-soft);
+  transition: background .15s;
+}
+.result-item:last-child { border-bottom: none; }
+.result-item:hover { background: var(--teal-bg); }
+.result-item.active { background: var(--teal-bg); }
+.ri-code {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--teal);
+  background: var(--teal-bg);
+  padding: 3px 7px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  letter-spacing: .02em;
+}
+.ri-info { flex: 1; min-width: 0; }
+.ri-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ri-brand { font-size: 11px; color: var(--text-muted); }
+.no-results {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ═══════════════════════════════════
+   PRODUCT DETAILS CARD
+════════════════════════════════════ */
+#product-panel { display: none; }
+#product-panel.visible { display: block; }
+.product-body { display: flex; gap: 0; }
+.product-image-col {
+  width: 310px;
+  flex-shrink: 0;
+  padding: 20px;
+  border-right: 1px solid var(--border-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+body.arabic .product-image-col { border-right: none; border-left: 1px solid var(--border-soft); }
+.product-img-frame {
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 260px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.product-img-frame img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.img-placeholder {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 8px;
+  color: var(--text-light);
+  font-size: 12px;
+}
+.img-expand-btn {
+  position: absolute;
+  bottom: 8px; left: 8px;
+  width: 28px; height: 28px;
+  background: rgba(255,255,255,.9);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 13px;
+  transition: all .18s;
+}
+.img-expand-btn:hover { background: white; color: var(--teal); }
+.product-code-badge {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--teal);
+  background: var(--teal-bg);
+  padding: 5px 12px;
+  border-radius: 6px;
+  letter-spacing: .04em;
+}
+.product-details-col { flex: 1; min-width: 0; padding: 20px 24px; }
+.detail-grid { display: flex; flex-direction: column; gap: 0; }
+.detail-row {
+  display: flex; align-items: flex-start;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border-soft);
+  gap: 12px;
+}
+.detail-row:last-child { border-bottom: none; }
+.detail-icon {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-light);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.detail-label {
+  width: 135px;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  padding-top: 6px;
+}
+.detail-value {
+  flex: 1;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  padding-top: 6px;
+  word-break: break-word;
+}
+.detail-value.arabic { font-family: var(--font-ar); direction: rtl; text-align: left; }
+body.arabic .detail-value.arabic { text-align: right; }
+.detail-value.price { color: var(--teal-dark); font-size: 15px; font-weight: 700; }
+.detail-value.note { color: var(--text-muted); font-style: italic; font-weight: 400; }
+
+/* ═══════════════════════════════════
+   SIDEBAR — AVAILABILITY
+════════════════════════════════════ */
+.avail-card { padding: 16px 18px; }
+.avail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.avail-title { font-size: 14px; font-weight: 700; color: var(--navy); }
+.avail-badge {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 99px;
+}
+.avail-badge.instock { background: var(--success-bg); color: var(--success); }
+.avail-badge.outstock { background: #fef2f2; color: var(--danger); }
+.avail-badge.unknown { background: var(--border-soft); color: var(--text-muted); }
+.avail-check { font-size: 12px; }
+.avail-info { font-size: 12px; color: var(--text-muted); margin-bottom: 0; }
+
+/* ═══════════════════════════════════
+   SIDEBAR — QUICK ACTIONS
+════════════════════════════════════ */
+.qa-card { padding: 16px 18px; }
+.qa-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 12px; }
+.qa-btn {
+  width: 100%;
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--bg-card);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all .18s;
+  margin-bottom: 8px;
+  text-align: left;
+}
+body.arabic .qa-btn { text-align: right; }
+.qa-btn:last-child { margin-bottom: 0; }
+.qa-btn:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-bg); }
+.qa-btn.primary { background: var(--teal); border-color: var(--teal); color: #fff; box-shadow: 0 2px 8px rgba(13,122,110,.25); }
+.qa-btn.primary:hover { background: var(--teal-light); }
+.qa-btn-icon { width: 16px; height: 16px; flex-shrink: 0; }
+.qa-btn .star-icon { font-size: 15px; line-height: 1; }
+.qa-btn.favorited { border-color: #f59e0b; color: #d97706; background: #fffbeb; }
+.qa-btn.favorited:hover { background: #fef3c7; }
+
+/* ═══════════════════════════════════
+   SIDEBAR — RECENT SEARCHES
+════════════════════════════════════ */
+.recent-card { padding: 16px 18px; }
+.recent-title { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 10px; }
+.recent-list { display: flex; flex-direction: column; gap: 4px; }
+.recent-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all .15s;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+}
+.recent-tag:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-bg); }
+.recent-empty { font-size: 12px; color: var(--text-light); }
+
+/* ═══════════════════════════════════
+   FAVORITES PANEL
+════════════════════════════════════ */
+.fav-panel { display: none; }
+.fav-panel.visible { display: block; }
+.fav-list { display: flex; flex-direction: column; gap: 0; max-height: 260px; overflow-y: auto; }
+.fav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border-soft);
+  cursor: pointer;
+  transition: background .15s;
+}
+.fav-item:last-child { border-bottom: none; }
+.fav-item:hover { background: var(--teal-bg); }
+.fav-code {
+  font-family: 'Courier New', monospace;
+  font-size: 11px; font-weight: 700;
+  color: var(--teal);
+  background: var(--teal-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.fav-name { flex: 1; font-size: 12.5px; font-weight: 600; color: var(--text); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fav-del { background: none; border: none; cursor: pointer; color: var(--text-light); font-size: 14px; line-height: 1; padding: 2px; transition: color .15s; }
+.fav-del:hover { color: var(--danger); }
+.fav-empty { padding: 16px 18px; font-size: 12px; color: var(--text-light); }
+
+/* ═══════════════════════════════════
+   EMPTY / WELCOME STATE
+════════════════════════════════════ */
+.welcome-state {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 60px 30px;
+  text-align: center;
+  gap: 12px;
+}
+.welcome-icon { font-size: 48px; margin-bottom: 8px; opacity: .5; }
+.welcome-title { font-size: 16px; font-weight: 700; color: var(--navy); }
+.welcome-sub { font-size: 13px; color: var(--text-muted); max-width: 340px; }
+.welcome-tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 8px; }
+.welcome-tag {
+  padding: 4px 10px;
+  background: var(--teal-bg);
+  color: var(--teal-dark);
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════
+   LOADING SPINNER
+════════════════════════════════════ */
+.spinner {
+  width: 22px; height: 22px;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--teal);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  display: none;
+  flex-shrink: 0;
+}
+.spinner.visible { display: block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ═══════════════════════════════════
+   TOAST NOTIFICATION
+════════════════════════════════════ */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--navy);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(80px);
+  opacity: 0;
+  transition: all .3s cubic-bezier(.34,1.56,.64,1);
+  z-index: 9999;
+  pointer-events: none;
+  max-width: 300px;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { background: var(--success); }
+.toast.error   { background: var(--danger); }
+body.arabic .toast { right: auto; left: 24px; }
+
+/* ═══════════════════════════════════
+   IMAGE MODAL
+════════════════════════════════════ */
+.img-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.75);
+  display: none; align-items: center; justify-content: center;
+  z-index: 9000;
+  backdrop-filter: blur(4px);
+}
+.img-modal.visible { display: flex; }
+.img-modal-inner {
+  position: relative;
+  max-width: 90vw; max-height: 90vh;
+  background: white;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+.img-modal img { max-width: 80vw; max-height: 80vh; display: block; object-fit: contain; }
+.img-modal-close {
+  position: absolute; top: 12px; right: 12px;
+  width: 32px; height: 32px;
+  background: rgba(0,0,0,.4);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.img-modal-close:hover { background: rgba(0,0,0,.7); }
+
+/* ═══════════════════════════════════
+   UTILITY
+════════════════════════════════════ */
+.section-title {
+  font-size: 14px; font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+.db-status {
+  position: fixed; bottom: 24px; left: 24px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; color: var(--text-muted);
+  background: var(--bg-card);
+  padding: 6px 12px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  z-index: 50;
+}
+.db-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--text-light);
+  flex-shrink: 0;
+}
+.db-dot.loaded { background: var(--success); }
+.db-dot.error  { background: var(--danger); }
+
+/* ═══════════════════════════════════
+   ARABIC OVERRIDES
+════════════════════════════════════ */
+body.arabic .product-body { flex-direction: row-reverse; }
+body.arabic .detail-row { flex-direction: row-reverse; }
+body.arabic .detail-label { text-align: right; }
+body.arabic .detail-value { text-align: right; }
+body.arabic .search-row { flex-direction: row-reverse; }
+body.arabic .search-input { padding: 0 16px 0 44px; direction: rtl; }
+body.arabic .db-status { left: auto; right: 24px; }
+
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header class="header">
+  <div class="logo-wrap">
+    <img id="logo-img" src="" alt="Raha Logo"
+         style="height:44px;width:auto;display:none;border-radius:6px;object-fit:contain;">
+    <div class="logo-box" id="logo-fallback">ر</div>
+    <div class="logo-text">
+      <div class="ar">شركة رها التجارية</div>
+      <div class="en">RAHA TRADING CO.</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="lang-btn active" id="btn-ar" onclick="setLang('ar')">AR</button>
+    <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+    <div class="header-divider"></div>
+    <button class="globe-btn" title="Language">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- ═══════════════ BANNER ═══════════════ -->
+<div class="banner">
+  <div class="banner-left">
+    <div class="banner-icon">
+      <!-- Robot icon -->
+      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="7" y="12" width="22" height="16" rx="4" fill="white" fill-opacity=".95"/>
+        <rect x="13" y="16" width="4" height="4" rx="1.5" fill="#0d7a6e"/>
+        <rect x="19" y="16" width="4" height="4" rx="1.5" fill="#0d7a6e"/>
+        <rect x="14" y="22" width="8" height="2" rx="1" fill="#0d7a6e"/>
+        <rect x="16" y="8" width="4" height="5" rx="1" fill="white" fill-opacity=".95"/>
+        <circle cx="18" cy="7" r="2" fill="white" fill-opacity=".9"/>
+        <rect x="4" y="17" width="3" height="6" rx="1.5" fill="white" fill-opacity=".8"/>
+        <rect x="29" y="17" width="3" height="6" rx="1.5" fill="white" fill-opacity=".8"/>
+      </svg>
+    </div>
+    <div>
+      <div class="banner-title" id="banner-title">PRODUCT ASSISTANT</div>
+      <div class="banner-sub" id="banner-sub">Search and view product details instantly</div>
+    </div>
+  </div>
+  <div class="banner-image"></div>
+</div>
+
+<!-- ═══════════════ MAIN WRAP ═══════════════ -->
+<div class="main-wrap">
+
+  <!-- LEFT/MAIN COLUMN -->
+  <div class="col-main">
+
+    <!-- SEARCH CARD -->
+    <div class="card search-card">
+      <div class="search-label" id="lbl-search">Search Product</div>
+      <div class="search-row">
+        <div class="search-select-wrap">
+          <select class="search-select" id="search-field">
+            <option value="all"   id="opt-all">All Fields</option>
+            <option value="code"  id="opt-code">By Code</option>
+            <option value="name"  id="opt-name">By Name</option>
+            <option value="arabic" id="opt-arabic">By Arabic</option>
+            <option value="brand" id="opt-brand">By Brand</option>
+            <option value="series" id="opt-series">By Series</option>
+          </select>
+        </div>
+        <div class="search-input-wrap">
+          <input type="text" class="search-input" id="search-input"
+                 placeholder="e.g. TRF1006, TREDEX, مخرج ماء"
+                 autocomplete="off" spellcheck="false"/>
+          <button class="search-clear" id="search-clear" onclick="clearSearch()">✕</button>
+        </div>
+        <div class="spinner" id="search-spinner"></div>
+        <button class="search-btn" onclick="doSearch()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <span id="btn-search-lbl">Search</span>
+        </button>
+      </div>
+      <div class="search-hint" id="search-hint">You can search by Code, Item Name, Item Name Arabic, Brand or Series</div>
+
+      <!-- RESULTS DROPDOWN -->
+      <div class="results-dropdown" id="results-dropdown"></div>
+    </div>
+
+    <!-- PRODUCT PANEL (hidden until search) -->
+    <div class="card" id="product-panel">
+      <div class="card-header" id="pd-header">Product Details</div>
+      <div class="product-body">
+        <!-- Image -->
+        <div class="product-image-col">
+          <div class="product-img-frame" id="img-frame">
+            <div class="img-placeholder" id="img-placeholder">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <span>No Image</span>
+            </div>
+            <img id="product-img" src="" alt="" style="display:none;" onerror="imgError()" onload="imgLoaded()"/>
+            <button class="img-expand-btn" onclick="openImgModal()" title="Expand">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            </button>
+          </div>
+          <div class="product-code-badge" id="product-code-badge">—</div>
+        </div>
+        <!-- Details -->
+        <div class="product-details-col">
+          <div class="detail-grid">
+            <div class="detail-row">
+              <div class="detail-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div>
+              <div class="detail-label" id="lbl-code">Code</div>
+              <div class="detail-value" id="out-code">—</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+              <div class="detail-label" id="lbl-name">Item Name</div>
+              <div class="detail-value" id="out-name">—</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+              <div class="detail-label" id="lbl-name-ar">Item Name Arabic</div>
+              <div class="detail-value arabic" id="out-name-ar">—</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+              <div class="detail-label" id="lbl-brand">Brand</div>
+              <div class="detail-value" id="out-brand">—</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+              <div class="detail-label" id="lbl-series">Series</div>
+              <div class="detail-value" id="out-series">—</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12" y2="16"/></svg></div>
+              <div class="detail-label" id="lbl-price-ex">Price w/o Vat</div>
+              <div class="detail-value price" id="out-price-ex">—</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12" y2="16"/></svg></div>
+              <div class="detail-label" id="lbl-price-in">Price with Vat</div>
+              <div class="detail-value price" id="out-price-in">—</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+              <div class="detail-label" id="lbl-note">Note</div>
+              <div class="detail-value note" id="out-note">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WELCOME STATE (shown when no product selected) -->
+    <div class="card welcome-state" id="welcome-state">
+      <div class="welcome-icon">🔍</div>
+      <div class="welcome-title" id="welcome-title">Search for a Product</div>
+      <div class="welcome-sub" id="welcome-sub">Enter a product code, name, brand, or series above to find product details instantly.</div>
+      <div class="welcome-tags">
+        <span class="welcome-tag" onclick="quickSearch('TRF1006')">TRF1006</span>
+        <span class="welcome-tag" onclick="quickSearch('TREDEX')">TREDEX</span>
+        <span class="welcome-tag" onclick="quickSearch('Chrome')">Chrome</span>
+        <span class="welcome-tag" onclick="quickSearch('T.R')">T.R</span>
+        <span class="welcome-tag" onclick="quickSearch('مخرج')">مخرج</span>
+      </div>
+    </div>
+
+  </div><!-- /col-main -->
+
+  <!-- RIGHT SIDEBAR -->
+  <div class="col-side">
+
+    <!-- AVAILABILITY -->
+    <div class="card avail-card" id="avail-card" style="display:none;">
+      <div class="avail-header">
+        <div class="avail-title" id="lbl-avail">Availability</div>
+        <div class="avail-badge instock" id="avail-badge">
+          <span class="avail-check">✓</span>
+          <span id="avail-text">In Stock</span>
+        </div>
+      </div>
+      <div class="avail-info" id="avail-info"></div>
+    </div>
+
+    <!-- PRODUCT ACTIONS -->
+    <div class="card qa-card" id="qa-card" style="display:none;">
+      <div class="qa-title" id="lbl-qa">Product Actions</div>
+      <button class="qa-btn" id="qa-copy" onclick="copyCode()">
+        <svg class="qa-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        <span id="qa-lbl-copy">Copy Code</span>
+      </button>
+      <button class="qa-btn" id="qa-copy-desc" onclick="copyDescription()">
+        <svg class="qa-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+        <span id="qa-lbl-copy-desc">Copy Description</span>
+      </button>
+      <button class="qa-btn" id="qa-copy-price" onclick="copyPrice()">
+        <svg class="qa-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12" y2="16"/></svg>
+        <span id="qa-lbl-copy-price">Copy Price</span>
+      </button>
+      <button class="qa-btn" id="qa-favorite" onclick="toggleFavorite()">
+        <span class="star-icon">☆</span>
+        <span id="qa-lbl-fav">Add to Favorites</span>
+      </button>
+    </div>
+
+    <!-- RECENT SEARCHES -->
+    <div class="card recent-card" id="recent-card">
+      <div class="recent-title" id="lbl-recent">Recent Searches</div>
+      <div class="recent-list" id="recent-list">
+        <span class="recent-empty" id="lbl-recent-empty">No recent searches</span>
+      </div>
+    </div>
+
+    <!-- FAVORITES -->
+    <div class="card" id="fav-card" style="display:none;">
+      <div class="card-header" id="lbl-fav-header">Favorites</div>
+      <div class="fav-list" id="fav-list"></div>
+    </div>
+
+    <!-- DB RELOAD -->
+    <button class="qa-btn" style="width:100%;margin-top:4px;" onclick="reloadDB()" id="btn-reload">
+      <svg class="qa-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"/>
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+      </svg>
+      <span id="lbl-reload">Reload Database</span>
+    </button>
+
+  </div><!-- /col-side -->
+</div><!-- /main-wrap -->
+
+<!-- DB STATUS -->
+<div class="db-status" id="db-status">
+  <div class="db-dot" id="db-dot"></div>
+  <span id="db-status-text">Loading database…</span>
+</div>
+
+<!-- IMAGE MODAL -->
+<div class="img-modal" id="img-modal" onclick="closeImgModal()">
+  <div class="img-modal-inner" onclick="event.stopPropagation()">
+    <img id="modal-img" src="" alt=""/>
+    <button class="img-modal-close" onclick="closeImgModal()">✕</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+// ── NODE (available via nodeIntegration) ─────────────────
+let _path = null, _fs = null;
+try { _path = require('path'); _fs = require('fs'); } catch(e) {}
+
+// ── LOGO ─────────────────────────────────────────────────
+// PA-1 FIX: load the company logo from disk, same multi-extension
+// strategy used by all other modules.
+function loadLogo() {
+  if (!_path || !_fs) return;
+  const bases = [process.resourcesPath || '', __dirname];
+  const exts  = ['png', 'jpg', 'jpeg', 'PNG', 'JPG'];
+  for (const base of bases) {
+    for (const ext of exts) {
+      const p = _path.join(base, 'Logo', 'logo.' + ext);
+      try {
+        if (_fs.existsSync(p)) {
+          const mime = ext.toLowerCase() === 'png' ? 'png' : 'jpeg';
+          const b64  = `data:image/${mime};base64,` + _fs.readFileSync(p).toString('base64');
+          const img  = document.getElementById('logo-img');
+          img.src = b64;
+          img.style.display = 'block';
+          document.getElementById('logo-fallback').style.display = 'none';
+          return;
+        }
+      } catch(e) { /* try next */ }
+    }
+  }
+}
+
+// ── IPC ──────────────────────────────────────────────────
+let ipc = null;
+let _runningInElectron = false;
+try {
+  ipc = require('electron').ipcRenderer;
+  _runningInElectron = true;
+} catch(e) {
+  // ISSUE #15 FIX: clearly signal we are in browser/dev mode with mock data.
+  // In production (Electron) this block never runs.
+  console.warn('[Product Assistant] Not running in Electron — using mock IPC data.');
+  ipc = {
+    invoke: async (ch, args) => {
+      if (ch === 'pa-search') {
+        const mock = [
+          { Code:'TRF1006', 'Item Name':'TREDEX T.R Outlet, Chrome', 'Item Name Arabic':'مخرج ماء تريدكس تي آر كروم', Brand:'TRED - S1', Series:'T.R', 'Price w/o Vat':52.17, 'Price with Vat':60, Note:'-' },
+          { Code:'TRF1007', 'Item Name':'TREDEX T.R Elbow Connector', 'Item Name Arabic':'وصلة كوع تريدكس', Brand:'TRED - S1', Series:'T.R', 'Price w/o Vat':38.26, 'Price with Vat':44, Note:'-' },
+          { Code:'MXR2001', 'Item Name':'RAHA Single Lever Basin Mixer', 'Item Name Arabic':'خلاط حوض أحادي رافعة', Brand:'RAHA - PRO', Series:'Luxe', 'Price w/o Vat':173.91, 'Price with Vat':200, Note:'Chrome finish' },
+        ];
+        const q = (args.query||'').toLowerCase();
+        const field = args.field;
+        const fm = { code: r=>r.Code, name: r=>r['Item Name'], arabic: r=>r['Item Name Arabic'], brand: r=>r.Brand, series: r=>r.Series, all: r=>Object.values(r).join(' ') };
+        const get = fm[field]||fm.all;
+        return mock.filter(r => get(r).toLowerCase().includes(q));
+      }
+      if (ch === 'pa-get-image') return null;
+      if (ch === 'pa-reload-db') return 3;
+      return null;
+    }
+  };
+}
+
+// ── STATE ─────────────────────────────────────────────────
+let currentProduct = null;
+let currentLang    = 'ar';
+let recentSearches = JSON.parse(localStorage.getItem('pa-recent') || '[]');
+let favorites      = JSON.parse(localStorage.getItem('pa-favorites') || '[]');
+let searchTimer    = null;
+let allResults     = [];
+
+// ── TRANSLATIONS ──────────────────────────────────────────
+const T = {
+  en: {
+    bannerTitle:  'PRODUCT ASSISTANT',
+    bannerSub:    'Search and view product details instantly',
+    search:       'Search Product',
+    optAll:       'All Fields', optCode:'By Code', optName:'By Name',
+    optAr:        'By Arabic',  optBrand:'By Brand', optSeries:'By Series',
+    hint:         'You can search by Code, Item Name, Item Name Arabic, Brand or Series',
+    btnSearch:    'Search',
+    pdHeader:     'Product Details',
+    code:'Code', name:'Item Name', nameAr:'Item Name Arabic',
+    brand:'Brand', series:'Series', priceEx:'Price w/o Vat', priceIn:'Price with Vat',
+    note:'Note',
+    avail:'Availability', inStock:'In Stock', outStock:'Out of Stock', unknown:'—',
+    qaTitle:'Product Actions',
+    qaFav:'Add to Favorites', qaFavDone:'Saved to Favorites',
+    qaCopy:'Copy Code', qaCopyDesc:'Copy Description', qaCopyPrice:'Copy Price', qaCopyImg:'Copy Image Path',
+    recent:'Recent Searches', recentEmpty:'No recent searches',
+    favHeader:'Favorites',
+    reload:'Reload Database',
+    welcome:'Search for a Product',
+    welcomeSub:'Enter a product code, name, brand, or series above to find product details instantly.',
+    toastCopied:'Code copied to clipboard!',
+    toastFavAdd:'Added to favorites',
+    toastFavRem:'Removed from favorites',
+
+    toastReload:'Database reloaded:',
+    toastReloadFail:'Database reload failed',
+    noResults:'No results found',
+    dbLoading:'Loading database…',
+    dbLoaded:'products loaded',
+    noImg:'No Image',
+    products:'products',
+  },
+  ar: {
+    bannerTitle:  'مساعد المنتجات',
+    bannerSub:    'ابحث وعرض تفاصيل المنتج فورياً',
+    search:       'بحث عن منتج',
+    optAll:       'كل الحقول', optCode:'بالكود', optName:'بالاسم (إنجليزي)',
+    optAr:        'بالاسم (عربي)', optBrand:'بالماركة', optSeries:'بالسلسلة',
+    hint:         'يمكنك البحث بالكود أو اسم المنتج أو الماركة أو السلسلة',
+    btnSearch:    'بحث',
+    pdHeader:     'تفاصيل المنتج',
+    code:'الكود', name:'اسم المنتج', nameAr:'الاسم بالعربي',
+    brand:'الماركة', series:'السلسلة', priceEx:'السعر بدون ضريبة', priceIn:'السعر مع الضريبة',
+    note:'ملاحظة',
+    avail:'التوفر', inStock:'متوفر', outStock:'غير متوفر', unknown:'—',
+    qaTitle:'إجراءات المنتج',
+    qaFav:'إضافة للمفضلة', qaFavDone:'في المفضلة',
+    qaCopy:'نسخ الكود', qaCopyDesc:'نسخ الوصف', qaCopyPrice:'نسخ السعر', qaCopyImg:'نسخ الصورة',
+    recent:'آخر عمليات البحث', recentEmpty:'لا توجد عمليات بحث سابقة',
+    favHeader:'المفضلة',
+    reload:'إعادة تحميل قاعدة البيانات',
+    welcome:'ابحث عن منتج',
+    welcomeSub:'أدخل كود المنتج أو الاسم أو الماركة أو السلسلة للعثور على التفاصيل فوراً.',
+    toastCopied:'تم نسخ الكود!',
+    toastFavAdd:'تمت الإضافة للمفضلة',
+    toastFavRem:'تمت الإزالة من المفضلة',
+
+    toastReload:'تم إعادة تحميل قاعدة البيانات:',
+    toastReloadFail:'فشل إعادة تحميل قاعدة البيانات',
+    noResults:'لم يتم العثور على نتائج',
+    dbLoading:'جارٍ تحميل قاعدة البيانات…',
+    dbLoaded:'منتج تم تحميله',
+    noImg:'لا توجد صورة',
+    products:'منتجات',
+  }
+};
+
+function t(key) { return (T[currentLang] || T.ar)[key] || key; }
+
+// ── LANG ──────────────────────────────────────────────────
+function setLang(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  document.body.classList.toggle('arabic', lang === 'ar');
+  document.getElementById('btn-ar').classList.toggle('active', lang === 'ar');
+  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  applyTranslations();
+}
+
+function applyTranslations() {
+  const k = t;
+  document.getElementById('banner-title').textContent  = k('bannerTitle');
+  document.getElementById('banner-sub').textContent    = k('bannerSub');
+  document.getElementById('lbl-search').textContent    = k('search');
+  document.getElementById('opt-all').textContent       = k('optAll');
+  document.getElementById('opt-code').textContent      = k('optCode');
+  document.getElementById('opt-name').textContent      = k('optName');
+  document.getElementById('opt-arabic').textContent    = k('optAr');
+  document.getElementById('opt-brand').textContent     = k('optBrand');
+  document.getElementById('opt-series').textContent    = k('optSeries');
+  document.getElementById('search-hint').textContent   = k('hint');
+  document.getElementById('btn-search-lbl').textContent = k('btnSearch');
+  document.getElementById('pd-header').textContent     = k('pdHeader');
+  document.getElementById('lbl-code').textContent      = k('code');
+  document.getElementById('lbl-name').textContent      = k('name');
+  document.getElementById('lbl-name-ar').textContent   = k('nameAr');
+  document.getElementById('lbl-brand').textContent     = k('brand');
+  document.getElementById('lbl-series').textContent    = k('series');
+  document.getElementById('lbl-price-ex').textContent  = k('priceEx');
+  document.getElementById('lbl-price-in').textContent  = k('priceIn');
+  document.getElementById('lbl-note').textContent      = k('note');
+  document.getElementById('lbl-avail').textContent     = k('avail');
+  document.getElementById('lbl-qa').textContent           = k('qaTitle');
+  document.getElementById('qa-lbl-copy').textContent      = k('qaCopy');
+  document.getElementById('qa-lbl-copy-desc').textContent = k('qaCopyDesc');
+  document.getElementById('qa-lbl-copy-price').textContent= k('qaCopyPrice');
+  document.getElementById('qa-lbl-copy-img').textContent  = k('qaCopyImg');
+  document.getElementById('lbl-recent').textContent    = k('recent');
+  document.getElementById('lbl-recent-empty').textContent = k('recentEmpty');
+  document.getElementById('lbl-fav-header').textContent = k('favHeader');
+  document.getElementById('lbl-reload').textContent    = k('reload');
+  document.getElementById('welcome-title').textContent = k('welcome');
+  document.getElementById('welcome-sub').textContent   = k('welcomeSub');
+  // Favorite button text
+  updateFavBtn();
+  renderRecent();
+  renderFavorites();
+}
+
+// ── SEARCH ────────────────────────────────────────────────
+const searchInput   = document.getElementById('search-input');
+const searchSpinner = document.getElementById('search-spinner');
+const searchClear   = document.getElementById('search-clear');
+const resultsDD     = document.getElementById('results-dropdown');
+
+searchInput.addEventListener('input', () => {
+  const val = searchInput.value.trim();
+  searchClear.classList.toggle('visible', val.length > 0);
+  clearTimeout(searchTimer);
+  if (val.length === 0) { closeResults(); return; }
+  if (val.length < 2) return;
+  searchTimer = setTimeout(() => doSearch(true), 350);
+});
+
+// PA-3 FIX: merged both keydown listeners into one.
+// The original code had TWO separate keydown listeners on searchInput.
+// When the dropdown was open and the user pressed Enter, BOTH fired:
+// the first called doSearch() again, overwriting the user's selection.
+searchInput.addEventListener('keydown', e => {
+  // ── Dropdown navigation (only when dropdown is visible) ──
+  if (resultsDD.classList.contains('visible')) {
+    const items  = resultsDD.querySelectorAll('.result-item');
+    const active = resultsDD.querySelector('.result-item.active');
+    let idx = active ? parseInt(active.dataset.idx) : -1;
+    if (e.key === 'ArrowDown') { e.preventDefault(); idx = Math.min(idx + 1, items.length - 1); }
+    if (e.key === 'ArrowUp')   { e.preventDefault(); idx = Math.max(idx - 1, 0); }
+    items.forEach(it => it.classList.remove('active'));
+    if (items[idx]) { items[idx].classList.add('active'); items[idx].scrollIntoView({ block: 'nearest' }); }
+    // Enter on an active item picks it — does NOT also trigger doSearch()
+    if (e.key === 'Enter' && active) { e.preventDefault(); pickResult(idx); return; }
+  }
+  // ── Normal keys (only when dropdown is NOT intercepting) ──
+  if (e.key === 'Enter') doSearch();
+  if (e.key === 'Escape') clearSearch();
+});
+
+function clearSearch() {
+  searchInput.value = '';
+  searchClear.classList.remove('visible');
+  closeResults();
+  searchInput.focus();
+}
+
+function closeResults() { resultsDD.classList.remove('visible'); allResults = []; }
+
+async function doSearch(inline = false) {
+  const query = searchInput.value.trim();
+  if (!query) return;
+  const field = document.getElementById('search-field').value;
+
+  searchSpinner.classList.add('visible');
+  try {
+    const rows = await ipc.invoke('pa-search', { field, query });
+    allResults = rows;
+    searchSpinner.classList.remove('visible');
+
+    if (rows.length === 0) {
+      resultsDD.innerHTML = `<div class="no-results">${t('noResults')}</div>`;
+      resultsDD.classList.add('visible');
+      return;
+    }
+
+    if (rows.length === 1 && !inline) {
+      // Single result → show directly
+      closeResults();
+      selectProduct(rows[0]);
+      addRecent(rows[0].Code);
+      return;
+    }
+
+    // Multiple results → dropdown
+    resultsDD.innerHTML = rows.slice(0, 30).map((r, i) => `
+      <div class="result-item" data-idx="${i}" onclick="pickResult(${i})">
+        <span class="ri-code">${r.Code || '—'}</span>
+        <div class="ri-info">
+          <div class="ri-name">${r['Item Name'] || '—'}</div>
+          <div class="ri-brand">${r.Brand || ''} ${r.Series ? '· ' + r.Series : ''}</div>
+        </div>
+      </div>
+    `).join('');
+    resultsDD.classList.add('visible');
+
+    if (!inline) {
+      // Auto-select first
+      selectProduct(rows[0]);
+      addRecent(query);
+    }
+  } catch(e) {
+    searchSpinner.classList.remove('visible');
+    toast('Search error: ' + e.message, 'error');
+  }
+}
+
+function pickResult(idx) {
+  const r = allResults[idx];
+  if (!r) return;
+  closeResults();
+  selectProduct(r);
+  addRecent(r.Code);
+}
+
+function quickSearch(q) {
+  searchInput.value = q;
+  searchClear.classList.add('visible');
+  doSearch();
+}
+
+// ── SELECT PRODUCT ─────────────────────────────────────────
+async function selectProduct(row) {
+  currentProduct = row;
+
+  // Toggle panels
+  document.getElementById('welcome-state').style.display = 'none';
+  document.getElementById('product-panel').classList.add('visible');
+  document.getElementById('avail-card').style.display = 'block';
+  document.getElementById('qa-card').style.display = 'block';
+
+  // Fill details
+  const fmt = (v) => {
+    if (!v && v !== 0) return '—';
+    const n = parseFloat(v);
+    return isNaN(n) ? String(v) : n.toFixed(2) + ' SR';
+  };
+
+  document.getElementById('product-code-badge').textContent = row.Code || '—';
+  document.getElementById('out-code').textContent    = row.Code || '—';
+  document.getElementById('out-name').textContent    = row['Item Name'] || '—';
+  document.getElementById('out-name-ar').textContent = row['Item Name Arabic'] || '—';
+  document.getElementById('out-brand').textContent   = row.Brand || '—';
+  document.getElementById('out-series').textContent  = row.Series || '—';
+  document.getElementById('out-price-ex').textContent = fmt(row['Price w/o Vat']);
+  document.getElementById('out-price-in').textContent = fmt(row['Price with Vat']);
+  document.getElementById('out-note').textContent    = row.Note && row.Note !== '-' ? row.Note : '—';
+
+  // Availability (placeholder — can wire to stock system)
+  document.getElementById('avail-text').textContent = t('inStock');
+  const badge = document.getElementById('avail-badge');
+  badge.className = 'avail-badge instock';
+
+  // Favorite button state
+  updateFavBtn();
+
+  // Load image
+  loadProductImage(row.Code);
+}
+
+async function loadProductImage(code) {
+  const img = document.getElementById('product-img');
+  const ph  = document.getElementById('img-placeholder');
+
+  img.style.display = 'none';
+  ph.style.display = 'flex';
+
+  try {
+    const src = await ipc.invoke('pa-get-image', code);
+    if (src) {
+      // PA-6 FIX: hide placeholder immediately when src is assigned.
+      // Previously it stayed visible until the onload event fired,
+      // which may never fire for browser-cached images.
+      img.src = src;
+      ph.style.display = 'none';
+      img.style.display = 'block';
+    } else {
+      ph.style.display = 'flex';
+    }
+  } catch(e) {
+    ph.style.display = 'flex';
+  }
+}
+
+function imgLoaded() {
+  document.getElementById('product-img').style.display = 'block';
+  document.getElementById('img-placeholder').style.display = 'none';
+}
+function imgError() {
+  document.getElementById('product-img').style.display = 'none';
+  document.getElementById('img-placeholder').style.display = 'flex';
+}
+
+// ── IMAGE MODAL ───────────────────────────────────────────
+function openImgModal() {
+  const src = document.getElementById('product-img').src;
+  if (!src || document.getElementById('product-img').style.display === 'none') return;
+  document.getElementById('modal-img').src = src;
+  document.getElementById('img-modal').classList.add('visible');
+}
+function closeImgModal() { document.getElementById('img-modal').classList.remove('visible'); }
+
+// ── COPY ACTIONS ─────────────────────────────────────────
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch(e) {
+    const el = document.createElement('textarea');
+    el.value = text;
+    document.body.appendChild(el);
+    el.select(); document.execCommand('copy');
+    document.body.removeChild(el);
+  }
+}
+
+async function copyCode() {
+  if (!currentProduct) return;
+  await copyToClipboard(currentProduct.Code || '');
+  toast(t('toastCopied'), 'success');
+}
+
+async function copyDescription() {
+  if (!currentProduct) return;
+  const desc = currentProduct['Item Name'] || currentProduct['Item Name Arabic'] || '';
+  await copyToClipboard(desc);
+  toast(currentLang === 'ar' ? 'تم نسخ الوصف!' : 'Description copied!', 'success');
+}
+
+async function copyPrice() {
+  if (!currentProduct) return;
+  const price = currentProduct['Price w/o Vat'] || currentProduct['Price with Vat'] || '';
+  await copyToClipboard(String(price));
+  toast(currentLang === 'ar' ? 'تم نسخ السعر!' : 'Price copied!', 'success');
+}
+
+async function copyImagePath() {
+  if (!currentProduct) return;
+  try {
+    const src = await ipc.invoke('pa-get-image', currentProduct.Code);
+    if (src) {
+      await copyToClipboard(src);
+      toast(currentLang === 'ar' ? 'تم نسخ مسار الصورة!' : 'Image path copied!', 'success');
+    } else {
+      toast(currentLang === 'ar' ? 'لا توجد صورة' : 'No image available', 'error');
+    }
+  } catch(e) {
+    toast(currentLang === 'ar' ? 'خطأ' : 'Error', 'error');
+  }
+}
+
+// ── FAVORITES ─────────────────────────────────────────────
+function toggleFavorite() {
+  if (!currentProduct) return;
+  const code = currentProduct.Code;
+  const idx  = favorites.findIndex(f => f.Code === code);
+  if (idx === -1) {
+    favorites.unshift({ Code: code, 'Item Name': currentProduct['Item Name'] });
+    if (favorites.length > 50) favorites.pop();
+    toast(t('toastFavAdd'), 'success');
+  } else {
+    favorites.splice(idx, 1);
+    toast(t('toastFavRem'), 'success'); // PA-4 FIX: was missing type arg — toast had no colour
+  }
+  localStorage.setItem('pa-favorites', JSON.stringify(favorites));
+  updateFavBtn();
+  renderFavorites();
+}
+
+function updateFavBtn() {
+  const btn  = document.getElementById('qa-favorite');
+  const lbl  = document.getElementById('qa-lbl-fav');
+  const star = btn.querySelector('.star-icon');
+  if (!currentProduct) { star.textContent = '☆'; lbl.textContent = t('qaFav'); btn.classList.remove('favorited'); return; }
+  const isFav = favorites.some(f => f.Code === currentProduct.Code);
+  star.textContent = isFav ? '★' : '☆';
+  lbl.textContent  = isFav ? t('qaFavDone') : t('qaFav');
+  btn.classList.toggle('favorited', isFav);
+}
+
+function renderFavorites() {
+  const card = document.getElementById('fav-card');
+  const list = document.getElementById('fav-list');
+  if (favorites.length === 0) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  list.innerHTML = favorites.map((f, i) => `
+    <div class="fav-item" onclick="quickSearch('${f.Code}')">
+      <span class="fav-code">${f.Code}</span>
+      <span class="fav-name">${f['Item Name'] || ''}</span>
+      <button class="fav-del" onclick="removeFav(event,${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function removeFav(e, idx) {
+  e.stopPropagation();
+  favorites.splice(idx, 1);
+  localStorage.setItem('pa-favorites', JSON.stringify(favorites));
+  renderFavorites();
+  updateFavBtn();
+}
+
+// ── RECENT SEARCHES ───────────────────────────────────────
+function addRecent(code) {
+  recentSearches = [code, ...recentSearches.filter(r => r !== code)].slice(0, 8);
+  localStorage.setItem('pa-recent', JSON.stringify(recentSearches));
+  renderRecent();
+}
+
+function renderRecent() {
+  const list  = document.getElementById('recent-list');
+  const empty = document.getElementById('lbl-recent-empty');
+  if (recentSearches.length === 0) {
+    // PA-5 FIX: show the empty label via CSS visibility only — never appendChild it
+    // into list, which caused it to be orphaned and re-appended on every call,
+    // accumulating duplicate nodes in the DOM over time.
+    list.innerHTML = '';
+    empty.style.display = '';
+  } else {
+    empty.style.display = 'none';
+    list.innerHTML = recentSearches.map(r =>
+      `<span class="recent-tag" onclick="quickSearch('${r}')">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        ${r}
+      </span>`
+    ).join('');
+  }
+}
+
+// ── DATABASE RELOAD ───────────────────────────────────────
+async function reloadDB() {
+  document.getElementById('db-dot').className = 'db-dot';
+  document.getElementById('db-status-text').textContent = t('dbLoading');
+  try {
+    const count = await ipc.invoke('pa-reload-db');
+    document.getElementById('db-dot').className = 'db-dot loaded';
+    document.getElementById('db-status-text').textContent = `${count} ${t('dbLoaded')}`;
+    toast(`${t('toastReload')} ${count} ${t('products')}`, 'success');
+  } catch(e) {
+    document.getElementById('db-dot').className = 'db-dot error';
+    document.getElementById('db-status-text').textContent = t('toastReloadFail');
+    toast(t('toastReloadFail'), 'error');
+  }
+}
+
+// ── TOAST ─────────────────────────────────────────────────
+let toastTimer = null;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast' + (type ? ' ' + type : '');
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ── CLICK OUTSIDE RESULTS ─────────────────────────────────
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-card')) closeResults();
+});
+
+// ── INIT ──────────────────────────────────────────────────
+async function init() {
+  loadLogo();
+  setLang('ar'); // default Arabic
+  renderRecent();
+  renderFavorites();
+
+  // ISSUE #15 FIX: show a visible warning banner when running outside Electron
+  if (!_runningInElectron) {
+    const banner = document.createElement('div');
+    banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#e67e22;color:white;text-align:center;padding:8px;font-size:12px;font-weight:800;z-index:9999;letter-spacing:0.5px;';
+    banner.textContent = '⚠ DEV MODE — Mock data active. Run inside Electron for real product database.';
+    document.body.appendChild(banner);
+  }
+
+  // Load DB on startup
+  try {
+    const count = await ipc.invoke('pa-reload-db');
+    document.getElementById('db-dot').className = 'db-dot loaded';
+    document.getElementById('db-status-text').textContent = `${count} ${t('dbLoaded')}`;
+  } catch(e) {
+    document.getElementById('db-dot').className = 'db-dot error';
+    document.getElementById('db-status-text').textContent = 'Database not connected';
+  }
+  searchInput.focus();
+}
+
+init();
+</script>
+
+</body>
+</html>

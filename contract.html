@@ -17,38 +17,96 @@
         #controls {
             width: 320px; position: fixed;
             right: 0; top: 0; bottom: 0;
-            background: #fff; padding: 20px;
+            background: #fff; padding: 0;
             border-left: 1px solid #d9e2ec;
             overflow-y: auto; z-index: 1000;
         }
-        .ctrl-title { margin: 0 0 15px 0; font-size: 17px; font-weight: 800; color: var(--raha-blue); }
+
+        /* SIDEBAR HEADER CARD */
+        .sidebar-header-card {
+            background: #102a43;
+            padding: 20px 20px 16px;
+            border-radius: 0 0 16px 16px;
+        }
+        .sidebar-header-card h2 {
+            color: white; margin: 0 0 3px 0; font-size: 18px; font-weight: 800;
+        }
+        .sidebar-header-card .subtitle {
+            color: rgba(255,255,255,0.6); font-size: 11px; margin-bottom: 14px;
+        }
+        .zoom-row { display: flex; align-items: center; gap: 6px; }
+        .zoom-btn {
+            width: 34px; height: 34px; border-radius: 8px;
+            background: rgba(255,255,255,0.15); border: none;
+            color: white; font-size: 18px; font-weight: bold;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: background 0.15s;
+        }
+        .zoom-btn:hover { background: rgba(255,255,255,0.28); }
+        #zoom-display {
+            flex: 1; text-align: center; font-size: 13px; font-weight: 700;
+            color: white; background: rgba(255,255,255,0.15);
+            padding: 7px; border-radius: 8px;
+        }
+
+        /* TAB BAR */
+        .tab-bar {
+            display: flex; margin: 14px 18px 12px; border-radius: 10px;
+            overflow: hidden; border: 1px solid #d9e2ec; background: #f0f4f8;
+        }
+        .tab-bar button {
+            flex: 1; padding: 9px; border: none; cursor: pointer;
+            font-weight: 700; font-size: 11px; transition: all 0.2s;
+        }
+
+        #panel-editor { padding: 0 18px 16px; }
+
+        .ctrl-title { display: none; } /* replaced by header card */
+
         .ig { margin-bottom: 13px; }
-        .ig label { display: block; font-size: 11px; font-weight: 700; margin-bottom: 4px; color: #486581; }
-        .ig input {
-            width: 100%; padding: 9px; border: 1px solid #bcccdc;
-            border-radius: 6px; box-sizing: border-box;
+        .ig label {
+            display: block; font-size: 10px; font-weight: 700;
+            margin-bottom: 5px; color: #627d98;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .ig input, .ig select {
+            width: 100%; padding: 9px 11px; border: 1px solid #d9e2ec;
+            border-radius: 8px; box-sizing: border-box;
             font-family: 'Tahoma', Arial, sans-serif;
             direction: rtl; text-align: right; font-size: 13px;
+            color: #102a43; background: #fff; transition: border-color 0.15s;
         }
+        .ig input:focus, .ig select:focus { outline: none; border-color: #102a43; }
+        .ig input[readonly] { background: #f8fafc; color: #627d98; cursor: not-allowed; }
+
         .pfx-wrap { display: flex; align-items: stretch; }
+        /* RTL flex: first DOM child (input) renders on the RIGHT,
+           second DOM child (pfx-tag) renders on the LEFT.
+           Eliminate the shared border at the tag-right / input-left join. */
         .pfx-tag {
-            padding: 9px 10px; background: #eee;
-            border: 1px solid #bcccdc; border-left: none;
-            border-radius: 6px 0 0 6px;
-            font-size: 13px; font-weight: 700; color: #102a43;
+            padding: 9px 10px; background: #f0f4f8;
+            border: 1px solid #d9e2ec; border-right: none;
+            border-radius: 0 8px 8px 0;
+            font-size: 13px; font-weight: 800; color: #102a43;
             display: flex; align-items: center; white-space: nowrap;
         }
-        .pfx-input { border-radius: 0 6px 6px 0 !important; flex: 1; min-width: 0; }
+        .pfx-input { border-radius: 8px 0 0 8px !important; flex: 1; min-width: 0; border-left: none !important; }
 
         .field-error .ig-inp, .field-error .pfx-input { border-color: #d32f2f !important; background: #fff5f5 !important; }
         .fwarn { font-size: 10px; color: #d32f2f; font-weight: 700; margin-top: 3px; display: none; }
         .field-error .fwarn { display: block; }
 
         .dl-btn {
-            background: #22c55e; color: white; padding: 14px;
-            border: none; border-radius: 6px; cursor: pointer;
-            width: 100%; font-size: 15px; margin-top: 15px;
-            font-weight: bold; font-family: 'Tahoma', Arial, sans-serif;
+            background: #102a43; color: white; padding: 13px;
+            border: none; border-radius: 10px; cursor: pointer;
+            width: 100%; font-size: 14px; margin-top: 12px;
+            font-weight: 800; font-family: 'Tahoma', Arial, sans-serif;
+            box-shadow: 0 4px 12px rgba(16,42,67,0.25);
+            transition: opacity 0.2s; letter-spacing: 0.3px;
+        }
+        .dl-btn:hover { opacity: 0.88; }
+        .dl-btn.secondary {
+            background: #486581; box-shadow: none; margin-top: 8px;
         }
 
         /* ── PAGE WRAP ── */
@@ -180,6 +238,24 @@
 
 <!-- ═══════════ SIDEBAR ═══════════ -->
 <div id="controls">
+    <!-- HEADER CARD -->
+    <div class="sidebar-header-card">
+        <h2>محرر العقد</h2>
+        <div class="subtitle">إنشاء وتخصيص عقد التصنيع</div>
+        <div class="zoom-row">
+            <button class="zoom-btn" onclick="zoomOut()">−</button>
+            <span id="zoom-display">100%</span>
+            <button class="zoom-btn" onclick="zoomIn()">+</button>
+        </div>
+    </div>
+
+    <!-- TAB BAR -->
+    <div class="tab-bar">
+        <button id="tab-editor" onclick="switchTab('editor')" style="background:#102a43;color:white;border-radius:9px 0 0 9px;">تعديل</button>
+        <button id="tab-history" onclick="switchTab('history')" style="background:#f0f4f8;color:#486581;border-radius:0 9px 9px 0;">📋 السجلات</button>
+    </div>
+
+    <div id="panel-editor">
     <p class="ctrl-title">📋 عقد تصنيع</p>
 
     <div class="ig" id="grp-sn">
@@ -192,7 +268,7 @@
         <div class="fwarn">⚠ الرقم التسلسلي مطلوب</div>
     </div>
 
-    <div class="ig" id="grp-rep">
+    <div class="ig" id="grp-date">
         <label>التاريخ</label>
         <input type="text" id="in_date" readonly style="background:#eee;">
     </div>
@@ -259,6 +335,25 @@
                style="display:none;width:100%;margin-top:6px;padding:9px;border:1px solid #bcccdc;border-radius:6px;box-sizing:border-box;font-family:'Tahoma',Arial,sans-serif;font-size:13px;direction:rtl;text-align:right;">
     </div>
     <button class="dl-btn" id="dl-btn" onclick="downloadPDF()">💾 حفظ العقد (PDF)</button>
+    <button class="dl-btn secondary" id="new-btn" onclick="newContract()">📄 عقد جديد</button>
+    <div id="offline-bar" style="display:none;margin-top:10px;padding:8px 12px;background:#fff3cd;border:1px solid #ffc107;border-radius:6px;font-size:11px;font-weight:700;color:#856404;text-align:center;">⚠ Firebase غير متصل</div>
+
+    </div><!-- /panel-editor -->
+    <div id="panel-history" style="display:none;flex-direction:column;flex:1;min-height:0;">
+        <input id="hist-search" type="text" placeholder="بحث..." oninput="debouncedHistSearch()"
+            style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #d9e2ec;border-radius:6px;font-size:12px;margin-bottom:8px;direction:rtl;">
+        <div style="overflow-y:auto;flex:1;border:1px solid #d9e2ec;border-radius:6px;">
+            <table style="width:100%;border-collapse:collapse;direction:rtl;">
+                <thead style="position:sticky;top:0;background:#f0f4f8;z-index:1;">
+                    <tr><th style="padding:8px 10px;text-align:right;font-weight:800;border-bottom:2px solid #d9e2ec;white-space:nowrap;font-size:11px;">S/N</th><th style="padding:8px 10px;text-align:right;font-weight:800;border-bottom:2px solid #d9e2ec;white-space:nowrap;font-size:11px;">اسم العميل</th><th style="padding:8px 10px;text-align:right;font-weight:800;border-bottom:2px solid #d9e2ec;white-space:nowrap;font-size:11px;">التاريخ</th><th style="padding:8px 10px;text-align:right;font-weight:800;border-bottom:2px solid #d9e2ec;white-space:nowrap;font-size:11px;">المندوب</th><th style="padding:8px 10px;text-align:right;font-weight:800;border-bottom:2px solid #d9e2ec;white-space:nowrap;font-size:11px;">قيمة العقد</th><th style="padding:8px 10px;text-align:right;font-weight:800;border-bottom:2px solid #d9e2ec;white-space:nowrap;font-size:11px;">وقت الحفظ</th></tr>
+                </thead>
+                <tbody id="hist-tbody">
+                    <tr><td colspan="6" style="padding:14px;text-align:center;color:#888;font-size:11px;">لا توجد سجلات</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p style="font-size:10px;color:#aaa;margin:5px 0 0;text-align:center;">Last 200 · newest first</p>
+    </div>
 </div>
 
 <!-- ═══════════ CONTRACT PAGES ═══════════ -->
@@ -409,6 +504,12 @@
 
 <script>
     const { ipcRenderer } = require('electron');
+
+    let isDirty = false;
+    ipcRenderer.on('request-close', () => {
+        const safe = !isDirty || confirm('توجد تغييرات غير محفوظة. هل تريد الإغلاق؟');
+        ipcRenderer.send('confirm-close', safe);
+    });
     const path = require('path');
     const fs   = require('fs');
 
@@ -526,10 +627,33 @@
         const result = await ipcRenderer.invoke('save-contract-pdf', base);
 
         document.getElementById('controls').style.display    = 'block';
-        document.getElementById('page-wrap').style.marginRight = '340px';
+        // Restore actual current sidebar width — not the hardcoded 340px default.
+        const sidebarW = document.getElementById('controls').offsetWidth;
+        document.getElementById('page-wrap').style.marginRight = (sidebarW + 20) + 'px';
 
         if (result.success) {
             await ipcRenderer.invoke('increment-sn').catch(() => {});
+
+            // ── Firebase: save contract record ──
+            try {
+                const repSel    = document.getElementById('in_rep').value;
+                const repCustom = document.getElementById('in_rep_custom').value.trim();
+                const repName   = repSel === '__other__' ? repCustom : repSel;
+                const contractRecord = {
+                    sn_key      : 'R1S' + document.getElementById('in_sn').value.trim(),
+                    customerName: document.getElementById('in_client').value.trim(),
+                    date        : document.getElementById('in_date').value,
+                    repName     : repName,
+                    phone       : '05' + document.getElementById('in_phone').value.trim(),
+                    amountNumber: document.getElementById('in_amount').value.trim(),
+                    amountText  : document.getElementById('in_atext').value.trim(),
+                    savedAt     : new Date().toISOString()
+                };
+                ipcRenderer.invoke('save-contract-record', contractRecord).catch(() => {});
+            } catch(e) { /* silent fail */ }
+
+            isDirty = false;
+            _historyCache = null; // invalidate cache so next History open fetches fresh data
             btn.innerText = '✓ تم الحفظ!';
             setTimeout(() => {
                 btn.innerText = '💾 حفظ العقد (PDF)';
@@ -556,12 +680,20 @@
         }
     }
 
-    loadLogo();
-    setDate();
-    sync();
-
-    // Auto-load S/N from Firebase
-    (async () => {
+    document.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            // Only save when Editor tab is active — not while browsing History
+            if (document.getElementById('panel-editor').style.display !== 'none') {
+                downloadPDF();
+            }
+        }
+    });
+    document.querySelectorAll('input,select,textarea').forEach(el => {
+        el.addEventListener('input',  () => { isDirty = true; });
+        el.addEventListener('change', () => { isDirty = true; });
+    });
+    async function fetchNextSN() {
         try {
             const res = await ipcRenderer.invoke('get-next-sn');
             if (res && res.success) {
@@ -569,7 +701,115 @@
                 sync();
             }
         } catch(e) {}
-    })();
+    }
+    function newContract() {
+        // BUG #12 FIX: guard against calling during an active save (btn is disabled).
+        // Prevents form reset mid-PDF-capture which would corrupt the printed output.
+        const btn = document.getElementById('dl-btn');
+        if (btn.disabled) return;
+
+        // Single confirm dialog — never stacks with request-close because
+        // request-close is an IPC event that only fires when the OS close button
+        // is clicked, which cannot happen while a JS confirm() is blocking the thread.
+        if (isDirty && !confirm('بدء عقد جديد؟ سيتم مسح البيانات الحالية.')) return;
+
+        ['in_client','in_phone','in_address','in_days','in_amount','in_atext'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        const repSel = document.getElementById('in_rep');
+        if (repSel) repSel.selectedIndex = 0;
+        const repCustom = document.getElementById('in_rep_custom');
+        if (repCustom) { repCustom.style.display = 'none'; repCustom.value = ''; }
+        document.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
+        isDirty = false;
+        setDate();
+        sync();
+        fetchNextSN();
+    }
+
+    function switchTab(tab) {
+        const isHist = tab === 'history';
+        document.getElementById('panel-editor').style.display  = isHist ? 'none'  : 'block';
+        document.getElementById('panel-history').style.display = isHist ? 'flex'  : 'none';
+        document.getElementById('tab-editor').style.background  = isHist ? '#d9e2ec' : '#102a43';
+        document.getElementById('tab-editor').style.color       = isHist ? '#486581' : 'white';
+        document.getElementById('tab-history').style.background = isHist ? '#102a43' : '#d9e2ec';
+        document.getElementById('tab-history').style.color      = isHist ? 'white'   : '#486581';
+        if (isHist) loadHistory(false);
+    }
+
+    let _historyCache     = null;
+    let _historyCacheTime = 0;
+    const HISTORY_CACHE_MS = 30000;
+
+    let _histSearchTimer = null;
+    function debouncedHistSearch() {
+        clearTimeout(_histSearchTimer);
+        _histSearchTimer = setTimeout(() => loadHistory(false), 220);
+    }
+
+    async function loadHistory(forceRefresh = false) {
+        const tbody  = document.getElementById('hist-tbody');
+        const search = (document.getElementById('hist-search').value || '').toLowerCase().trim();
+        const now    = Date.now();
+        // Serve from cache when warm — avoids Firebase hit on every keystroke
+        if (!forceRefresh && _historyCache && (now - _historyCacheTime) < HISTORY_CACHE_MS) {
+            renderHistoryRows(_historyCache, tbody, search);
+            return;
+        }
+        tbody.innerHTML = '<tr><td colspan="6" style="padding:14px;text-align:center;color:#888;font-size:11px;">جاري التحميل...</td></tr>';
+        try {
+            const res = await ipcRenderer.invoke('get-history', 'contract');
+            if (!res.success) {
+                tbody.innerHTML = `<tr><td colspan="6" style="padding:14px;text-align:center;color:#d32f2f;font-size:11px;">Error: ${res.reason}</td></tr>`;
+                return;
+            }
+            _historyCache     = res.rows;
+            _historyCacheTime = Date.now();
+            renderHistoryRows(res.rows, tbody, search);
+        } catch(e) {
+            tbody.innerHTML = '<tr><td colspan="6" style="padding:14px;text-align:center;color:#d32f2f;font-size:11px;">فشل التحميل</td></tr>';
+        }
+    }
+    function renderHistoryRows(rows, tbody, search) {
+        const filtered = search ? rows.filter(r => JSON.stringify(r).toLowerCase().includes(search)) : rows;
+        if (!filtered.length) {
+            tbody.innerHTML = '<tr><td colspan="6" style="padding:14px;text-align:center;color:#888;font-size:11px;">لا توجد سجلات</td></tr>';
+            return;
+        }
+        tbody.innerHTML = filtered.map(r => `<tr style="border-bottom:1px solid #f0f4f8;">
+            <td style="padding:7px 10px;font-size:11px;direction:ltr;">${r.sn||''}</td>
+            <td style="padding:7px 10px;font-size:11px;">${r.customerName||''}</td>
+            <td style="padding:7px 10px;font-size:11px;">${r.date||''}</td>
+            <td style="padding:7px 10px;font-size:11px;">${r.repName||''}</td>
+            <td style="padding:7px 10px;font-size:11px;">${r.amountNumber||''}</td>
+            <td style="padding:7px 10px;font-size:10px;color:#888;">${r.savedAt?r.savedAt.slice(0,10):''}</td>
+        </tr>`).join('');
+    }
+
+    // ── BUG #7 FIX: zoom controls ──
+    let zoomLevel = 1.0;
+    function zoomIn()  { zoomLevel = Math.min(parseFloat((zoomLevel + 0.1).toFixed(1)), 2.0); applyZoom(); }
+    function zoomOut() { zoomLevel = Math.max(parseFloat((zoomLevel - 0.1).toFixed(1)), 0.4); applyZoom(); }
+    function applyZoom() {
+        document.getElementById('page-wrap').style.zoom = zoomLevel;
+        document.getElementById('zoom-display').innerText = Math.round(zoomLevel * 100) + '%';
+    }
+
+    // ── Firebase connectivity check — dedicated ping, never touches counters ──
+    async function checkFirebase() {
+        try {
+            const r = await ipcRenderer.invoke('ping-firebase');
+            document.getElementById('offline-bar').style.display = r.success ? 'none' : 'block';
+        } catch(e) { document.getElementById('offline-bar').style.display = 'block'; }
+    }
+
+    loadLogo();
+    setDate();
+    sync();
+    fetchNextSN();
+    checkFirebase();
 </script>
 </body>
 </html>

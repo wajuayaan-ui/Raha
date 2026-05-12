@@ -1,6 +1,6 @@
 {
   "name": "raha-quotation",
-  "version": "1.0.5",
+  "version": "1.0.7",
   "description": "Raha Co. Quotation System",
   "author": "Wajahat Ali",
   "main": "main.js",
@@ -20,13 +20,23 @@
       "index.html",
       "quotation.html",
       "contract.html",
+      "deliverynote.html",
       "purchaseorder.html",
+      "product-assistant.html",
       "firebase-config.json"
     ],
     "extraResources": [
       {
         "from": "Logo",
         "to": "Logo"
+      },
+      {
+        "from": "data",
+        "to": "data"
+      },
+      {
+        "from": "ProductImages",
+        "to": "ProductImages"
       }
     ],
     "publish": [
@@ -41,7 +51,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "Logo/logo.ico"
@@ -54,8 +66,9 @@
     }
   },
   "dependencies": {
+    "electron-updater": "^6.1.7",
     "firebase-admin": "^12.0.0",
-    "electron-updater": "^6.1.7"
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "electron": "^28.3.3",
