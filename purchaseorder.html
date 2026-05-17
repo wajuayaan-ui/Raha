@@ -381,7 +381,7 @@
                     style="border-radius:0 6px 6px 0;flex:1;min-width:0;"
                     oninput="this.value=this.value.replace(/\D/g,'').slice(0,10);clearError('grp-vendor-phone');syncPhone();">
             </div>
-            <div class="field-warn" id="warn-vendor-phone">⚠ Vendor phone is required</div>
+            <div class="field-warn" id="warn-vendor-phone">⚠ Vendor phone must be 10 digits (e.g. 5XXXXXXXXX)</div>
         </div>
 
         <!-- Buyer Info -->
@@ -658,7 +658,7 @@
             vendorNamePh:    'Vendor / Supplier name',
             warnVendorName:  '⚠ Vendor name is required',
             lblVendorPhone:  'Vendor Phone',
-            warnVendorPhone: '⚠ Vendor phone is required',
+            warnVendorPhone: '⚠ Vendor phone must be 10 digits (e.g. 5XXXXXXXXX)',
             buyerSection:    '🏢 Buyer Info',
             lblBuyerName:    'Customer / Buyer Name',
             buyerNamePh:     'Customer name',
@@ -688,7 +688,7 @@
             vendorNamePh:    'اسم المورد / المجهز',
             warnVendorName:  '⚠ اسم المورد مطلوب',
             lblVendorPhone:  'هاتف المورد',
-            warnVendorPhone: '⚠ هاتف المورد مطلوب',
+            warnVendorPhone: '⚠ هاتف المورد يجب أن يكون 10 أرقام',
             buyerSection:    '🏢 معلومات المشتري',
             lblBuyerName:    'اسم العميل / المشتري',
             buyerNamePh:     'اسم العميل',
@@ -1140,7 +1140,10 @@
         // Validation
         let valid = true;
         if (!vendor) { document.getElementById('grp-vendor-name').classList.add('field-error'); document.getElementById('in_vendor_name').focus(); valid = false; }
-        if (!phone)  { document.getElementById('grp-vendor-phone').classList.add('field-error'); if (valid) document.getElementById('in_vendor_phone').focus(); valid = false; }
+        // BUG #7 FIX: validate full 10-digit length, not just non-empty.
+        // A single digit was previously enough to pass — now it must be exactly 10 digits
+        // to match Saudi mobile number format (e.g. 5XXXXXXXXX).
+        if (!phone || phone.length !== 10) { document.getElementById('grp-vendor-phone').classList.add('field-error'); if (valid) document.getElementById('in_vendor_phone').focus(); valid = false; }
         if (!buyer)  { document.getElementById('grp-buyer-name').classList.add('field-error'); if (valid) document.getElementById('in_buyer_name').focus(); valid = false; }
         if (!valid) return;
 

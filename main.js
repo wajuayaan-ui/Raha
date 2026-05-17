@@ -79,34 +79,94 @@ function initFirebase() {
 
 // ── AUTO-UPDATE SETUP ──
 function initAutoUpdater() {
-    if (!app.isPackaged) {
-        console.log('Auto-updater: skipped in dev mode.');
-        return;
-    }
     try {
         const { autoUpdater } = require('electron-updater');
-        autoUpdater.autoDownload = true;
+
+        // FIX 1: Do NOT auto-download — let the user decide via "Download Now" button
+        autoUpdater.autoDownload = false;
         autoUpdater.autoInstallOnAppQuit = true;
 
-        autoUpdater.on('checking-for-update', () => console.log('Updater: checking...'));
-        autoUpdater.on('update-not-available', () => console.log('Updater: up to date.'));
-        autoUpdater.on('error', (err) => console.error('Updater error:', err.message));
+        function send(payload) {
+            if (mainWindow) mainWindow.webContents.send('update-status', payload);
+        }
 
-        autoUpdater.on('update-available', (info) => {
-            if (mainWindow) mainWindow.webContents.send('update-status', { state: 'downloading', version: info.version });
+        autoUpdater.on('checking-for-update', () => {
+            console.log('Updater: checking...');
+            // UI is already showing "checking" state — no need to send
         });
 
+        // FIX 2: Notify UI that update is available (not downloading yet)
+        autoUpdater.on('update-available', (info) => {
+            console.log('Updater: update available —', info.version);
+            send({
+                state  : 'available',
+                version: info.version,
+                releaseNotes: typeof info.releaseNotes === 'string'
+                    ? info.releaseNotes.replace(/<[^>]+>/g, '').trim()   // strip HTML tags
+                    : 'Bug fixes and performance improvements.'
+            });
+        });
+
+        // FIX 3: Notify UI when already on latest version
+        autoUpdater.on('update-not-available', (info) => {
+            console.log('Updater: up to date.');
+            send({ state: 'not-available', version: info.version });
+        });
+
+        // FIX 4: Forward full progress data — percent, speed, transferred, total
         autoUpdater.on('download-progress', (progress) => {
-            const pct = Math.round(progress.percent);
-            if (mainWindow) mainWindow.webContents.send('update-status', { state: 'downloading', percent: pct });
+            send({
+                state          : 'downloading',
+                percent        : Math.round(progress.percent),
+                bytesPerSecond : progress.bytesPerSecond,
+                transferred    : progress.transferred,
+                total          : progress.total
+            });
         });
 
         autoUpdater.on('update-downloaded', (info) => {
-            if (mainWindow) mainWindow.webContents.send('update-status', { state: 'ready', version: info.version });
+            console.log('Updater: download complete —', info.version);
+            send({ state: 'ready', version: info.version });
+        });
+
+        autoUpdater.on('error', (err) => {
+            console.error('Updater error:', err.message);
+            send({ state: 'error', message: err.message });
+        });
+
+        // FIX 5: Handle renderer invoking 'check-for-updates' (triggered by clicking the menu row)
+        ipcMain.handle('check-for-updates', async () => {
+            try {
+                if (!app.isPackaged) {
+                    // In dev mode simulate a response after short delay
+                    setTimeout(() => send({ state: 'not-available', version: '1.0.7' }), 1500);
+                    return { success: true };
+                }
+                await autoUpdater.checkForUpdates();
+                return { success: true };
+            } catch (err) {
+                send({ state: 'error', message: err.message });
+                return { success: false, reason: err.message };
+            }
+        });
+
+        // FIX 6: Handle renderer invoking 'start-download' (triggered by "Download Now" button)
+        ipcMain.handle('start-download', async () => {
+            try {
+                await autoUpdater.downloadUpdate();
+                return { success: true };
+            } catch (err) {
+                console.error('Download error:', err.message);
+                return { success: false, reason: err.message };
+            }
         });
 
         ipcMain.on('install-update-now', () => autoUpdater.quitAndInstall(false, true));
-        setTimeout(() => autoUpdater.checkForUpdates(), 10000);
+
+        // Silent background check 10s after launch (only in production)
+        if (app.isPackaged) {
+            setTimeout(() => autoUpdater.checkForUpdates(), 10000);
+        }
 
     } catch (err) {
         console.error('Auto-updater init error:', err.message);
@@ -312,6 +372,14 @@ ipcMain.handle('open-contract', async () => {
     });
     contractWindow.loadFile('contract.html');
     contractWindow.setMenuBarVisibility(false);
+    // BUG #1 FIX: intercept close, ask renderer if it's safe, wait for confirm-close reply.
+    contractWindow.on('close', (e) => {
+        e.preventDefault();
+        contractWindow.webContents.send('request-close');
+    });
+    ipcMain.once('confirm-close', (event, safe) => {
+        if (safe) { contractWindow.destroy(); }
+    });
     contractWindow.on('closed', () => { contractWindow = null; });
 });
 
@@ -333,6 +401,14 @@ ipcMain.handle('open-quotation', async () => {
     });
     quotationWindow.loadFile('quotation.html');
     quotationWindow.setMenuBarVisibility(false);
+    // BUG #1 FIX: intercept close, ask renderer if it's safe, wait for confirm-close reply.
+    quotationWindow.on('close', (e) => {
+        e.preventDefault();
+        quotationWindow.webContents.send('request-close');
+    });
+    ipcMain.once('confirm-close', (event, safe) => {
+        if (safe) { quotationWindow.destroy(); }
+    });
     quotationWindow.on('closed', () => { quotationWindow = null; });
 });
 
@@ -353,6 +429,14 @@ ipcMain.handle('open-delivery', async () => {
     });
     deliveryWindow.loadFile('deliverynote.html');
     deliveryWindow.setMenuBarVisibility(false);
+    // BUG #1 FIX: intercept close, ask renderer if it's safe, wait for confirm-close reply.
+    deliveryWindow.on('close', (e) => {
+        e.preventDefault();
+        deliveryWindow.webContents.send('request-close');
+    });
+    ipcMain.once('confirm-close', (event, safe) => {
+        if (safe) { deliveryWindow.destroy(); }
+    });
     deliveryWindow.on('closed', () => { deliveryWindow = null; });
 });
 
@@ -449,6 +533,14 @@ ipcMain.handle('open-purchase', async () => {
     });
     purchaseWindow.loadFile('purchaseorder.html');
     purchaseWindow.setMenuBarVisibility(false);
+    // BUG #1 FIX: intercept close, ask renderer if it's safe, wait for confirm-close reply.
+    purchaseWindow.on('close', (e) => {
+        e.preventDefault();
+        purchaseWindow.webContents.send('request-close');
+    });
+    ipcMain.once('confirm-close', (event, safe) => {
+        if (safe) { purchaseWindow.destroy(); }
+    });
     purchaseWindow.on('closed', () => { purchaseWindow = null; });
 });
 

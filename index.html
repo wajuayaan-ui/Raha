@@ -38,6 +38,72 @@
     --font-ar:      'Tajawal', sans-serif;
 }
 
+/* ── Dark Mode Variables ── */
+html.dark {
+    --bg-base:      #0d1117;
+    --bg-surface:   #161b22;
+    --bg-subtle:    #1c2333;
+    --navy:         #e2e8f0;
+    --navy-mid:     #cbd5e1;
+    --text-primary: #e2e8f0;
+    --text-muted:   #8b9ab4;
+    --text-light:   #556070;
+    --border:       rgba(255,255,255,0.08);
+    --border-soft:  rgba(255,255,255,0.05);
+    --shadow-xs:    0 1px 2px rgba(0,0,0,0.4), 0 1px 6px rgba(0,0,0,0.3);
+    --shadow-sm:    0 2px 8px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3);
+    --shadow-md:    0 8px 24px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3);
+    --shadow-lg:    0 20px 50px rgba(0,0,0,0.6), 0 6px 16px rgba(0,0,0,0.4);
+}
+
+/* Smooth transition when switching modes */
+*, *::before, *::after {
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.2s ease, box-shadow 0.25s ease;
+}
+
+/* Override specific dark-mode elements that use hardcoded colours */
+html.dark nav {
+    background: rgba(22,27,34,0.92);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.06), var(--shadow-xs);
+}
+html.dark .mod-card {
+    background: rgba(28,35,51,0.95);
+}
+html.dark .mod-card:hover {
+    background: rgba(35,43,63,0.98);
+}
+html.dark .activity-card {
+    background: rgba(22,27,34,0.95);
+}
+html.dark .activity-card::before {
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+}
+html.dark .act-item:hover { background: #1c2333; }
+html.dark .skel {
+    background: linear-gradient(90deg, #1c2333 25%, #252e42 50%, #1c2333 75%);
+    background-size: 500px 100%;
+}
+html.dark #update-popup { background: #161b22; }
+html.dark .up-msg { color: #8b9ab4; }
+html.dark body::before {
+    background-image:
+        linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px);
+}
+html.dark .bg-orb-1 {
+    background: radial-gradient(circle, rgba(56,189,248,0.08) 0%, transparent 70%);
+}
+html.dark .bg-orb-2 {
+    background: radial-gradient(circle, rgba(124,58,237,0.07) 0%, transparent 70%);
+}
+html.dark .hero-eyebrow {
+    background: rgba(56,189,248,0.07);
+    border-color: rgba(56,189,248,0.12);
+    color: #38bdf8;
+}
+html.dark .hero-eyebrow .pill-dot { background: #38bdf8; }
+html.dark .lang-btn.active { background: #2563eb; }
+
 html { height: 100%; }
 
 body {
@@ -86,6 +152,14 @@ body::before {
         linear-gradient(rgba(37,99,235,0.025) 1px, transparent 1px),
         linear-gradient(90deg, rgba(37,99,235,0.025) 1px, transparent 1px);
     background-size: 40px 40px;
+    pointer-events: none;
+}
+
+/* ── Star canvas ── */
+#star-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
     pointer-events: none;
 }
 
@@ -649,7 +723,83 @@ html[dir="rtl"] footer { font-family: var(--font-ar); }
 #update-install-btn:hover { opacity: 0.88; }
 #update-dismiss-btn { position: absolute; top: 14px; right: 18px; background: transparent; color: #bbb; border: none; cursor: pointer; font-size: 20px; }
 #update-dismiss-btn:hover { color: #555; }
-#update-later-btn { background: transparent; border: none; color: #999; font-size: 12px; cursor: pointer; margin-top: 12px; text-decoration: underline; display: block; width: 100%; }
+/* ── Settings Panel ── */
+@keyframes settingsPop {
+    from { opacity:0; transform: translateY(-8px) scale(0.97); }
+    to   { opacity:1; transform: translateY(0)    scale(1); }
+}
+
+.sp-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 0;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: var(--transition);
+    gap: 10px;
+    margin: 0 -6px;
+    padding-left: 6px;
+    padding-right: 6px;
+}
+.sp-row:hover { background: var(--bg-subtle); }
+
+.sp-row-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+
+.sp-icon {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+
+.sp-label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+.sp-hint {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* Toggle switch */
+.sp-toggle {
+    width: 34px; height: 20px;
+    background: var(--border);
+    border-radius: 100px;
+    position: relative;
+    flex-shrink: 0;
+    transition: background 0.22s ease;
+}
+.sp-toggle.on { background: #2563eb; }
+
+.sp-thumb {
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    transition: left 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+.sp-toggle.on .sp-thumb { left: 17px; }
+
+/* Compact mode */
+body.compact main { padding-top: 28px; gap: 0; }
+body.compact .hero { margin-bottom: 24px; }
+body.compact .modules-row { gap: 10px; margin-bottom: 16px; }
+body.compact .mod-card { padding: 18px 16px 16px; }
+body.compact .card-icon { width: 42px; height: 42px; margin-bottom: 12px; }
+body.compact .activity-card { padding: 16px 20px 18px; }
 </style>
 </head>
 <body>
@@ -658,6 +808,9 @@ html[dir="rtl"] footer { font-family: var(--font-ar); }
 <div class="bg-orb bg-orb-1"></div>
 <div class="bg-orb bg-orb-2"></div>
 <div class="bg-orb bg-orb-3"></div>
+
+<!-- Animated star canvas -->
+<canvas id="star-canvas"></canvas>
 
 <!-- ── Navigation ── -->
 <nav>
@@ -678,9 +831,228 @@ html[dir="rtl"] footer { font-family: var(--font-ar); }
             <button class="lang-btn active" id="btn-ar" onclick="setLang('ar')">AR</button>
             <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
         </div>
-        <button class="nav-icon-btn" title="Settings">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7 7 0 0 0-1.62-.94l-.36-2.54A.484.484 0 0 0 14 2h-4a.484.484 0 0 0-.48.41l-.36 2.54a7.4 7.4 0 0 0-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.36 1.04.67 1.62.94l.36 2.54c.05.24.27.41.48.41h4c.24 0 .44-.17.47-.41l.36-2.54a7.4 7.4 0 0 0 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+        <button class="nav-icon-btn" id="dark-toggle-btn" onclick="toggleDark()" title="Toggle Dark Mode" aria-label="Toggle dark mode">
+            <svg id="dark-icon-moon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="display:none;"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>
+            <svg id="dark-icon-sun" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
         </button>
+        <div style="position:relative;">
+            <button class="nav-icon-btn" id="settings-btn" onclick="toggleSettings()" title="Settings" aria-label="Settings">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7 7 0 0 0-1.62-.94l-.36-2.54A.484.484 0 0 0 14 2h-4a.484.484 0 0 0-.48.41l-.36 2.54a7.4 7.4 0 0 0-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.36 1.04.67 1.62.94l.36 2.54c.05.24.27.41.48.41h4c.24 0 .44-.17.47-.41l.36-2.54a7.4 7.4 0 0 0 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+            </button>
+
+            <!-- Settings Dropdown Panel -->
+            <div id="settings-panel" style="
+                display:none;
+                position:absolute;
+                top:calc(100% + 10px);
+                right:0;
+                width:310px;
+                background:var(--bg-surface);
+                border:1px solid var(--border);
+                border-radius:16px;
+                box-shadow:var(--shadow-lg);
+                z-index:9999;
+                overflow:hidden;
+                animation: settingsPop 0.18s cubic-bezier(0.22,1,0.36,1) both;
+            ">
+                <!-- Panel header -->
+                <div style="padding:14px 18px 10px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between;">
+                    <span style="font-size:12px;font-weight:700;color:var(--text-primary);letter-spacing:0.06em;text-transform:uppercase;">PREFERENCES</span>
+                    <button onclick="toggleSettings()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:16px;line-height:1;padding:0 2px;" title="Close">✕</button>
+                </div>
+
+                <!-- Section: Interface -->
+                <div style="padding:12px 18px 4px;">
+                    <div style="font-size:10px;font-weight:700;color:var(--text-light);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;">Interface</div>
+
+                    <!-- Theme Mode -->
+                    <div class="sp-row" style="cursor:default;">
+                        <div class="sp-row-left">
+                            <div class="sp-icon" style="background:rgba(37,99,235,0.1);">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="#2563eb"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>
+                            </div>
+                            <div>
+                                <div class="sp-label">Theme Mode</div>
+                                <div class="sp-hint">Dark</div>
+                            </div>
+                        </div>
+                        <div style="position:relative;">
+                            <select id="sp-theme-select" onchange="applyThemeMode(this.value)" style="appearance:none;-webkit-appearance:none;background:var(--bg-subtle);border:1px solid var(--border);border-radius:8px;padding:5px 26px 5px 10px;font-size:11px;font-weight:600;color:var(--text-primary);cursor:pointer;outline:none;font-family:var(--font);">
+                                <option value="dark">🌙 Dark</option>
+                                <option value="light">☀️ Light</option>
+                                <option value="system">💻 System</option>
+                            </select>
+                            <svg viewBox="0 0 24 24" width="10" height="10" fill="var(--text-muted)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;"><path d="M7 10l5 5 5-5z"/></svg>
+                        </div>
+                    </div>
+
+                    <!-- Language -->
+                    <div class="sp-row" style="cursor:default;">
+                        <div class="sp-row-left">
+                            <div class="sp-icon" style="background:rgba(8,145,178,0.1);">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="#0891b2"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm-1 17.93V18a1 1 0 0 0-1-1H8v-2a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 0-1-1H9l-4.46 1.49A8.01 8.01 0 0 1 4 12a8 8 0 0 1 8-8v1a2 2 0 0 0-2 2v1a2 2 0 0 0 2 2h1a1 1 0 0 1 0 2h-1v1a2 2 0 0 0 2 2h1a1 1 0 0 1 1 1v2.93A8.02 8.02 0 0 1 11 19.93zm6.46-3.02L16 16v-1a2 2 0 0 0-2-2h-1v-1h3a1 1 0 0 0 0-2h-1v-1a1 1 0 0 0-1-1h-2V7a8 8 0 0 1 5.46 9.91z"/></svg>
+                            </div>
+                            <div>
+                                <div class="sp-label">Language</div>
+                                <div class="sp-hint">Choose application language</div>
+                            </div>
+                        </div>
+                        <div style="position:relative;">
+                            <select id="sp-lang-select" onchange="applyLangPref(this.value)" style="appearance:none;-webkit-appearance:none;background:var(--bg-subtle);border:1px solid var(--border);border-radius:8px;padding:5px 26px 5px 10px;font-size:11px;font-weight:600;color:var(--text-primary);cursor:pointer;outline:none;font-family:var(--font);">
+                                <option value="en">🌐 English</option>
+                                <option value="ar">🌐 Arabic</option>
+                            </select>
+                            <svg viewBox="0 0 24 24" width="10" height="10" fill="var(--text-muted)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;"><path d="M7 10l5 5 5-5z"/></svg>
+                        </div>
+                    </div>
+
+                    <!-- Compact Mode -->
+                    <div class="sp-row" onclick="toggleSetting('compactMode')">
+                        <div class="sp-row-left">
+                            <div class="sp-icon" style="background:rgba(217,119,6,0.1);">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="#d97706"><path d="M4 5h16v2H4zm0 6h16v2H4zm0 6h16v2H4z"/></svg>
+                            </div>
+                            <div>
+                                <div class="sp-label">Compact Mode</div>
+                                <div class="sp-hint">Reduce spacing for more content</div>
+                            </div>
+                        </div>
+                        <div class="sp-toggle" id="toggle-compactMode">
+                            <div class="sp-thumb"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Dashboard -->
+                <div style="padding:4px 18px 4px;margin-top:4px;border-top:1px solid var(--border-soft);">
+                    <div style="font-size:10px;font-weight:700;color:var(--text-light);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;margin-top:12px;">Dashboard</div>
+
+                    <!-- Show Recent Activity -->
+                    <div class="sp-row" onclick="toggleSetting('recentActivity')">
+                        <div class="sp-row-left">
+                            <div class="sp-icon" style="background:rgba(37,99,235,0.1);">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="#2563eb"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
+                            </div>
+                            <div>
+                                <div class="sp-label">Show Recent Activity</div>
+                                <div class="sp-hint">Show latest document activities</div>
+                            </div>
+                        </div>
+                        <div class="sp-toggle on" id="toggle-recentActivity">
+                            <div class="sp-thumb"></div>
+                        </div>
+                    </div>
+
+                    <!-- Auto Refresh Dashboard -->
+                    <div class="sp-row" onclick="toggleSetting('autoRefresh')">
+                        <div class="sp-row-left">
+                            <div class="sp-icon" style="background:rgba(22,163,74,0.1);">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="#16a34a"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 0 0-8 8 8 8 0 0 0 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18a6 6 0 0 1-6-6 6 6 0 0 1 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                            </div>
+                            <div>
+                                <div class="sp-label">Auto Refresh Dashboard</div>
+                                <div class="sp-hint">Keep data updated automatically</div>
+                            </div>
+                        </div>
+                        <div class="sp-toggle on" id="toggle-autoRefresh">
+                            <div class="sp-thumb"></div>
+                        </div>
+                    </div>
+
+                    <!-- Refresh Interval -->
+                    <div class="sp-row" style="cursor:default;">
+                        <div class="sp-row-left">
+                            <div class="sp-icon" style="background:rgba(124,58,237,0.1);">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="#7c3aed"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
+                            </div>
+                            <div>
+                                <div class="sp-label">Refresh Interval</div>
+                                <div class="sp-hint">Auto refresh interval</div>
+                            </div>
+                        </div>
+                        <div style="position:relative;">
+                            <select id="sp-interval-select" onchange="applyRefreshInterval(this.value)" style="appearance:none;-webkit-appearance:none;background:var(--bg-subtle);border:1px solid var(--border);border-radius:8px;padding:5px 26px 5px 10px;font-size:11px;font-weight:600;color:var(--text-primary);cursor:pointer;outline:none;font-family:var(--font);">
+                                <option value="15">15 seconds</option>
+                                <option value="30">30 seconds</option>
+                                <option value="60">1 minute</option>
+                                <option value="120">2 minutes</option>
+                            </select>
+                            <svg viewBox="0 0 24 24" width="10" height="10" fill="var(--text-muted)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;"><path d="M7 10l5 5 5-5z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Visual Effects -->
+                <div style="padding:4px 18px 4px;margin-top:4px;border-top:1px solid var(--border-soft);">
+                    <div style="font-size:10px;font-weight:700;color:var(--text-light);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;margin-top:12px;">Visual Effects</div>
+
+                    <!-- Animated Background -->
+                    <div class="sp-row" onclick="toggleSetting('animBg')">
+                        <div class="sp-row-left">
+                            <div class="sp-icon" style="background:rgba(8,145,178,0.1);">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="#0891b2"><path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61z"/></svg>
+                            </div>
+                            <div>
+                                <div class="sp-label">Animated Background</div>
+                                <div class="sp-hint">Enable subtle motion effects</div>
+                            </div>
+                        </div>
+                        <div class="sp-toggle on" id="toggle-animBg">
+                            <div class="sp-thumb"></div>
+                        </div>
+                    </div>
+
+                    <!-- Card Animations -->
+                    <div class="sp-row" onclick="toggleSetting('cardAnim')">
+                        <div class="sp-row-left">
+                            <div class="sp-icon" style="background:rgba(124,58,237,0.1);">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="#7c3aed"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 16H5V5h14v14z"/></svg>
+                            </div>
+                            <div>
+                                <div class="sp-label">Card Animations</div>
+                                <div class="sp-hint">Animate cards and elements</div>
+                            </div>
+                        </div>
+                        <div class="sp-toggle on" id="toggle-cardAnim">
+                            <div class="sp-thumb"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: System -->
+                <div style="padding:4px 18px 12px;margin-top:4px;border-top:1px solid var(--border-soft);">
+                    <div style="font-size:10px;font-weight:700;color:var(--text-light);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;margin-top:12px;">System</div>
+
+                    <!-- Version Information -->
+                    <div class="sp-row" style="cursor:pointer;" onclick="openVersionModal()">
+                        <div class="sp-row-left">
+                            <div class="sp-icon" style="background:rgba(37,99,235,0.08);">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="#2563eb"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                            </div>
+                            <div>
+                                <div class="sp-label">Version Information</div>
+                                <div class="sp-hint">Raha DMS v1.0.8</div>
+                            </div>
+                        </div>
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="var(--text-muted)"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+                    </div>
+
+                    <!-- Check for Updates -->
+                    <div class="sp-row" style="cursor:pointer;" onclick="checkForUpdates()">
+                        <div class="sp-row-left">
+                            <div class="sp-icon" style="background:rgba(22,163,74,0.08);">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="#16a34a"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                            </div>
+                            <div>
+                                <div class="sp-label">Check for Updates</div>
+                                <div class="sp-hint">Check latest version</div>
+                            </div>
+                        </div>
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="var(--text-muted)"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </nav>
 
@@ -822,25 +1194,450 @@ html[dir="rtl"] footer { font-family: var(--font-ar); }
 <!-- Footer -->
 <footer><span id="footer-text">© 2026 Raha Trading Co. All rights reserved.</span></footer>
 
-<!-- Auto-update popup -->
-<div id="update-overlay">
-    <div id="update-popup">
-        <button id="update-dismiss-btn" onclick="dismissUpdateBanner()" title="Dismiss">✕</button>
-        <div class="up-icon">🚀</div>
-        <div class="up-title" id="update-popup-title">Update Available!</div>
-        <div class="up-msg" id="update-banner-msg">Downloading the latest version...</div>
-        <div class="up-progress" id="update-progress-bar-wrap">
-            <div class="up-progress-bar" id="update-progress-bar"></div>
+<!-- Check for Updates Modal -->
+<div id="update-overlay" style="display:none;position:fixed;inset:0;background:rgba(12,30,60,0.55);backdrop-filter:blur(6px);z-index:10001;align-items:center;justify-content:center;">
+    <div id="update-popup" style="
+        background:var(--bg-surface);
+        border:1px solid var(--border);
+        border-radius:20px;
+        width:380px;
+        box-shadow:var(--shadow-lg);
+        overflow:hidden;
+        animation:settingsPop 0.2s cubic-bezier(0.22,1,0.36,1) both;
+        position:relative;
+    ">
+        <!-- Header -->
+        <div style="padding:16px 20px 14px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:13px;font-weight:700;color:var(--text-primary);">Check for Updates</span>
+            <button id="update-dismiss-btn" onclick="dismissUpdateBanner()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:17px;line-height:1;padding:0 2px;transition:var(--transition);" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">✕</button>
         </div>
-        <button id="update-install-btn" style="display:none;" onclick="installUpdate()">🔄 Restart &amp; Install Now</button>
-        <button id="update-later-btn" style="display:none;" onclick="dismissUpdateBanner()">Remind me later</button>
+
+        <!-- State: Checking -->
+        <div id="upd-state-checking" style="display:none;padding:36px 28px;text-align:center;">
+            <div style="margin:0 auto 18px;width:54px;height:54px;border-radius:50%;background:rgba(37,99,235,0.1);display:flex;align-items:center;justify-content:center;">
+                <svg id="upd-spin-icon" viewBox="0 0 24 24" width="26" height="26" fill="#2563eb" style="animation:updSpin 1s linear infinite;"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 0 0-8 8 8 8 0 0 0 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18a6 6 0 0 1-6-6 6 6 0 0 1 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+            </div>
+            <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:8px;">Checking for updates…</div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.6;">Connecting to update server. Please wait.</div>
+        </div>
+
+        <!-- State: Up to date -->
+        <div id="upd-state-uptodate" style="display:none;padding:36px 28px;text-align:center;">
+            <div style="margin:0 auto 18px;width:54px;height:54px;border-radius:50%;background:rgba(22,163,74,0.1);display:flex;align-items:center;justify-content:center;">
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="#16a34a"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            </div>
+            <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:8px;">You're up to date!</div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.6;">Raha DMS v1.0.8 is the latest version.</div>
+        </div>
+
+        <!-- State: Update available -->
+        <div id="upd-state-available" style="display:none;padding:28px 28px 10px;">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+                <div style="width:46px;height:46px;border-radius:12px;background:linear-gradient(145deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(37,99,235,0.35);flex-shrink:0;">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="white"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                </div>
+                <div>
+                    <div style="font-size:14px;font-weight:800;color:var(--text-primary);">Update Available</div>
+                    <div style="font-size:11px;color:var(--text-muted);margin-top:3px;" id="upd-avail-ver">Version — is ready to download</div>
+                </div>
+            </div>
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-soft);border-radius:10px;padding:12px 14px;font-size:11.5px;color:var(--text-muted);line-height:1.7;margin-bottom:18px;" id="upd-avail-notes">Release notes loading…</div>
+        </div>
+
+        <!-- State: Downloading -->
+        <div id="upd-state-downloading" style="display:none;padding:28px 28px 10px;">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+                <div style="width:46px;height:46px;border-radius:12px;background:linear-gradient(145deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(37,99,235,0.35);flex-shrink:0;">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="white" style="animation:updSpin 1.2s linear infinite;"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 0 0-8 8 8 8 0 0 0 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18a6 6 0 0 1-6-6 6 6 0 0 1 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                </div>
+                <div>
+                    <div style="font-size:14px;font-weight:800;color:var(--text-primary);">Downloading Update…</div>
+                    <div style="font-size:11px;color:var(--text-muted);margin-top:3px;" id="upd-dl-ver">Fetching latest version</div>
+                </div>
+            </div>
+            <!-- Progress bar -->
+            <div style="background:var(--bg-subtle);border-radius:100px;height:8px;overflow:hidden;margin-bottom:10px;">
+                <div id="upd-dl-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#2563eb,#38bdf8);border-radius:100px;transition:width 0.4s ease;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+                <span style="font-size:11px;color:var(--text-muted);" id="upd-dl-pct-label">0%</span>
+                <span style="font-size:11px;color:var(--text-muted);" id="upd-dl-speed">Calculating…</span>
+            </div>
+        </div>
+
+        <!-- State: Ready to install -->
+        <div id="upd-state-ready" style="display:none;padding:28px 28px 10px;text-align:center;">
+            <div style="margin:0 auto 18px;width:54px;height:54px;border-radius:50%;background:rgba(22,163,74,0.1);display:flex;align-items:center;justify-content:center;">
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="#16a34a"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            </div>
+            <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:8px;">Ready to Install!</div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.6;margin-bottom:6px;" id="upd-ready-ver">Download complete. Restart to apply the update.</div>
+        </div>
+
+        <!-- Footer buttons -->
+        <div id="upd-footer" style="padding:14px 20px;border-top:1px solid var(--border-soft);display:flex;gap:10px;justify-content:flex-end;">
+            <button id="upd-later-btn" onclick="dismissUpdateBanner()" style="background:var(--bg-subtle);color:var(--text-muted);border:1px solid var(--border);padding:8px 20px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;transition:var(--transition);" onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--bg-subtle)'">Later</button>
+            <button id="upd-action-btn" style="background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;border:none;padding:8px 22px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(37,99,235,0.35);transition:opacity 0.2s;display:none;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">Download</button>
+        </div>
     </div>
 </div>
+<style>
+@keyframes updSpin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+</style>
+
+<!-- Version Information Modal -->
+<div id="version-overlay" style="display:none;position:fixed;inset:0;background:rgba(12,30,60,0.55);backdrop-filter:blur(6px);z-index:10000;align-items:center;justify-content:center;">
+    <div id="version-modal" style="
+        background:var(--bg-surface);
+        border:1px solid var(--border);
+        border-radius:20px;
+        width:360px;
+        box-shadow:var(--shadow-lg);
+        overflow:hidden;
+        animation:settingsPop 0.2s cubic-bezier(0.22,1,0.36,1) both;
+        position:relative;
+    ">
+        <!-- Header -->
+        <div style="padding:16px 20px 14px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:13px;font-weight:700;color:var(--text-primary);">Version Information</span>
+            <button onclick="closeVersionModal()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:17px;line-height:1;padding:0 2px;transition:var(--transition);" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">✕</button>
+        </div>
+
+        <!-- App identity row -->
+        <div style="padding:18px 20px 14px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border-soft);">
+            <div style="width:46px;height:46px;border-radius:12px;background:linear-gradient(145deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(37,99,235,0.35);flex-shrink:0;">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="white"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm0 14a8 8 0 0 1-6.67-3.59C6.38 14.67 9.04 14 12 14s5.62.67 6.67 1.41A8 8 0 0 1 12 20z"/></svg>
+            </div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:15px;font-weight:800;color:var(--text-primary);letter-spacing:0.01em;">Raha DMS</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Raha Co. Quotation System</div>
+            </div>
+            <div style="background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.2);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;color:#2563eb;letter-spacing:0.04em;flex-shrink:0;">v1.0.8</div>
+        </div>
+
+        <!-- Info rows -->
+        <div style="padding:4px 0;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;padding:10px 20px;border-bottom:1px solid var(--border-soft);">
+                <span style="font-size:11.5px;font-weight:600;color:var(--text-muted);">Version</span>
+                <span style="font-size:11.5px;color:var(--text-primary);font-weight:500;">1.0.7</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;padding:10px 20px;border-bottom:1px solid var(--border-soft);">
+                <span style="font-size:11.5px;font-weight:600;color:var(--text-muted);">Description</span>
+                <span style="font-size:11.5px;color:var(--text-primary);font-weight:500;">Raha Co. Quotation System</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;padding:10px 20px;border-bottom:1px solid var(--border-soft);">
+                <span style="font-size:11.5px;font-weight:600;color:var(--text-muted);">Author</span>
+                <span style="font-size:11.5px;color:var(--text-primary);font-weight:500;">Wajahat Ali</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;padding:10px 20px;border-bottom:1px solid var(--border-soft);">
+                <span style="font-size:11.5px;font-weight:600;color:var(--text-muted);">Platform</span>
+                <span style="font-size:11.5px;color:var(--text-primary);font-weight:500;">Windows 11 (64-bit)</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;padding:10px 20px;border-bottom:1px solid var(--border-soft);">
+                <span style="font-size:11.5px;font-weight:600;color:var(--text-muted);">Build Date</span>
+                <span style="font-size:11.5px;color:var(--text-primary);font-weight:500;">April, 2026</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;padding:10px 20px;border-bottom:1px solid var(--border-soft);">
+                <span style="font-size:11.5px;font-weight:600;color:var(--text-muted);">Release Type</span>
+                <span style="font-size:11.5px;color:var(--text-primary);font-weight:500;">Stable</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;padding:10px 20px;border-bottom:1px solid var(--border-soft);">
+                <span style="font-size:11.5px;font-weight:600;color:var(--text-muted);">License</span>
+                <span style="font-size:11.5px;color:var(--text-primary);font-weight:500;">Proprietary</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;padding:10px 20px;">
+                <span style="font-size:11.5px;font-weight:600;color:var(--text-muted);">Copyright</span>
+                <span style="font-size:11.5px;color:var(--text-primary);font-weight:500;">© 2026 Raha Co. All rights reserved.</span>
+            </div>
+        </div>
+
+        <!-- Close button -->
+        <div style="padding:14px 20px;border-top:1px solid var(--border-soft);text-align:center;">
+            <button onclick="closeVersionModal()" style="background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;border:none;padding:9px 40px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(37,99,235,0.35);transition:opacity 0.2s;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Settings panel logic -->
+<script>
+(function() {
+    // ── Defaults ──
+    const DEFAULTS = {
+        recentActivity: true,
+        animBg:         true,
+        cardAnim:       true,
+        autoRefresh:    true,
+        compactMode:    false,
+    };
+
+    function loadSettings() {
+        const saved = {};
+        Object.keys(DEFAULTS).forEach(k => {
+            const v = localStorage.getItem('rahaSetting_' + k);
+            saved[k] = v === null ? DEFAULTS[k] : v === '1';
+        });
+        return saved;
+    }
+
+    function saveSetting(key, val) {
+        localStorage.setItem('rahaSetting_' + key, val ? '1' : '0');
+    }
+
+    function applySettings(s) {
+        // Recent Activity
+        const actSection = document.querySelector('.activity-section');
+        if (actSection) actSection.style.display = s.recentActivity ? '' : 'none';
+
+        // Animated stars
+        const canvas = document.getElementById('star-canvas');
+        if (canvas) canvas.style.display = s.animBg ? '' : 'none';
+
+        // Card entrance animations
+        document.querySelectorAll('.mod-card, .hero, .activity-section').forEach(el => {
+            el.style.animationName = s.cardAnim ? '' : 'none';
+        });
+
+        // Compact mode
+        document.body.classList.toggle('compact', s.compactMode);
+
+        // Update toggle UI
+        Object.keys(s).forEach(k => {
+            const tog = document.getElementById('toggle-' + k);
+            if (tog) tog.classList.toggle('on', s[k]);
+        });
+    }
+
+    let settings = loadSettings();
+    applySettings(settings);
+
+    window.toggleSetting = function(key) {
+        settings[key] = !settings[key];
+        saveSetting(key, settings[key]);
+        applySettings(settings);
+    };
+
+    window.resetSettings = function() {
+        settings = { ...DEFAULTS };
+        Object.keys(DEFAULTS).forEach(k => saveSetting(k, DEFAULTS[k]));
+        applySettings(settings);
+    };
+
+    // ── Open / close panel ──
+    window.toggleSettings = function() {
+        const panel = document.getElementById('settings-panel');
+        const isOpen = panel.style.display === 'block';
+        panel.style.display = isOpen ? 'none' : 'block';
+        if (!isOpen) panel.style.animation = 'none';
+        requestAnimationFrame(() => {
+            if (!isOpen) { panel.style.animation = ''; }
+        });
+    };
+
+    // ── Version Information Modal ──
+    window.openVersionModal = function() {
+        const overlay = document.getElementById('version-overlay');
+        overlay.style.display = 'flex';
+        // close settings panel
+        document.getElementById('settings-panel').style.display = 'none';
+    };
+    window.closeVersionModal = function() {
+        document.getElementById('version-overlay').style.display = 'none';
+    };
+    // Close on backdrop click
+    document.getElementById('version-overlay').addEventListener('click', function(e) {
+        if (e.target === this) closeVersionModal();
+    });
+
+    // ── Theme Mode dropdown ──
+    window.applyThemeMode = function(val) {
+        localStorage.setItem('rahaThemeMode', val);
+        if (val === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else if (val === 'light') {
+            document.documentElement.classList.remove('dark');
+        } else {
+            // system
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.classList.toggle('dark', prefersDark);
+        }
+        // Sync the dark-mode icon
+        if (typeof updateDarkIcon === 'function') updateDarkIcon();
+    };
+
+    // ── Language dropdown ──
+    window.applyLangPref = function(val) {
+        if (typeof setLang === 'function') setLang(val);
+    };
+
+    // ── Refresh Interval dropdown ──
+    window.applyRefreshInterval = function(val) {
+        localStorage.setItem('rahaRefreshInterval', val);
+    };
+
+    // Sync dropdown states on open
+    const origToggleSettings = window.toggleSettings;
+    window.toggleSettings = function() {
+        origToggleSettings();
+        // Sync theme select
+        const themeSelect = document.getElementById('sp-theme-select');
+        if (themeSelect) {
+            themeSelect.value = localStorage.getItem('rahaThemeMode') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        }
+        // Sync lang select
+        const langSelect = document.getElementById('sp-lang-select');
+        if (langSelect) {
+            langSelect.value = localStorage.getItem('rahaLang') || 'ar';
+        }
+        // Sync interval select
+        const intervalSelect = document.getElementById('sp-interval-select');
+        if (intervalSelect) {
+            intervalSelect.value = localStorage.getItem('rahaRefreshInterval') || '15';
+        }
+    };
+
+    // Close panel when clicking outside
+    document.addEventListener('click', function(e) {
+        const panel = document.getElementById('settings-panel');
+        const btn   = document.getElementById('settings-btn');
+        if (panel && panel.style.display === 'block' && !panel.contains(e.target) && !btn.contains(e.target)) {
+            panel.style.display = 'none';
+        }
+    });
+})();
+</script>
+<script>
+(function() {
+    const canvas = document.getElementById('star-canvas');
+    const ctx    = canvas.getContext('2d');
+    const GRID   = 40;   // must match body::before grid size
+    const COUNT  = 60;
+
+    let W, H, stars = [];
+
+    function isDark() { return document.documentElement.classList.contains('dark'); }
+
+    function starColor(alpha) {
+        return isDark()
+            ? `rgba(56,189,248,${alpha})`
+            : `rgba(37,99,235,${alpha})`;
+    }
+
+    function resize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+    }
+
+    function makeStar() {
+        // Each star travels along either a horizontal or vertical grid line
+        const horizontal = Math.random() < 0.5;
+
+        if (horizontal) {
+            // locked to a row, moves left or right
+            const row   = Math.floor(Math.random() * Math.ceil(H / GRID));
+            const dir   = Math.random() < 0.5 ? 1 : -1;
+            const speed = (0.4 + Math.random() * 0.9) * dir;
+            return {
+                axis: 'h',
+                x: Math.random() * W,
+                y: row * GRID,
+                speed,
+                r:     0.8 + Math.random() * 1.0,
+                alpha: 0.25 + Math.random() * 0.55,
+                life:  Math.random() * Math.PI * 2,
+                pulse: 0.008 + Math.random() * 0.012,
+            };
+        } else {
+            // locked to a column, moves up or down
+            const col   = Math.floor(Math.random() * Math.ceil(W / GRID));
+            const dir   = Math.random() < 0.5 ? 1 : -1;
+            const speed = (0.4 + Math.random() * 0.9) * dir;
+            return {
+                axis: 'v',
+                x: col * GRID,
+                y: Math.random() * H,
+                speed,
+                r:     0.8 + Math.random() * 1.0,
+                alpha: 0.25 + Math.random() * 0.55,
+                life:  Math.random() * Math.PI * 2,
+                pulse: 0.008 + Math.random() * 0.012,
+            };
+        }
+    }
+
+    function init() {
+        resize();
+        stars = Array.from({ length: COUNT }, makeStar);
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+
+        stars.forEach(s => {
+            // Move along the grid line
+            if (s.axis === 'h') {
+                s.x += s.speed;
+                // Wrap around
+                if (s.speed > 0 && s.x > W + 20)  s.x = -20;
+                if (s.speed < 0 && s.x < -20)      s.x = W + 20;
+            } else {
+                s.y += s.speed;
+                if (s.speed > 0 && s.y > H + 20)  s.y = -20;
+                if (s.speed < 0 && s.y < -20)      s.y = H + 20;
+            }
+
+            // Pulsing brightness
+            s.life += s.pulse;
+            const pulse  = (Math.sin(s.life) + 1) / 2;
+            const alpha  = s.alpha * (0.4 + pulse * 0.6);
+            const radius = s.r * (0.7 + pulse * 0.5);
+
+            // Outer soft glow
+            const grd = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, radius * 5);
+            grd.addColorStop(0,   starColor(alpha));
+            grd.addColorStop(0.5, starColor(alpha * 0.35));
+            grd.addColorStop(1,   starColor(0));
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, radius * 5, 0, Math.PI * 2);
+            ctx.fillStyle = grd;
+            ctx.fill();
+
+            // Bright core
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = starColor(Math.min(1, alpha * 1.6));
+            ctx.fill();
+        });
+
+        requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', () => {
+        resize();
+        init();
+    });
+
+    init();
+    draw();
+})();
+</script>
 
 <script>
     const { ipcRenderer } = require('electron');
     const path = require('path');
     const fs   = require('fs');
+
+    // ── Dark Mode ──
+    function applyDark(isDark) {
+        document.documentElement.classList.toggle('dark', isDark);
+        document.getElementById('dark-icon-moon').style.display = isDark ? 'block' : 'none';
+        document.getElementById('dark-icon-sun').style.display  = isDark ? 'none'  : 'block';
+        localStorage.setItem('rahaDark', isDark ? '1' : '0');
+    }
+    function toggleDark() {
+        applyDark(!document.documentElement.classList.contains('dark'));
+    }
+    // Init dark mode before first paint to avoid flash
+    applyDark(localStorage.getItem('rahaDark') === '1');
 
     // ── Load logo ──
     function loadLogo() {
@@ -939,35 +1736,117 @@ html[dir="rtl"] footer { font-family: var(--font-ar); }
         });
     });
 
-    // ── Auto-update popup ──
+    // ── Check for Updates — full real-time flow ──
     (function() {
+        const STATES = ['checking','uptodate','available','downloading','ready'];
+
+        function showState(name) {
+            STATES.forEach(s => {
+                const el = document.getElementById('upd-state-' + s);
+                if (el) el.style.display = (s === name) ? '' : 'none';
+            });
+        }
+
+        function openUpdateModal(initialState) {
+            showState(initialState || 'checking');
+            const overlay   = document.getElementById('update-overlay');
+            const laterBtn  = document.getElementById('upd-later-btn');
+            const actionBtn = document.getElementById('upd-action-btn');
+            overlay.style.display = 'flex';
+            laterBtn.style.display  = '';
+            actionBtn.style.display = 'none';
+            actionBtn.onclick = null;
+        }
+
+        // Called from "Check for Updates" row in settings panel
+        window.checkForUpdates = function() {
+            // Close settings panel first
+            document.getElementById('settings-panel').style.display = 'none';
+            openUpdateModal('checking');
+            ipcRenderer.invoke('check-for-updates').catch(() => {
+                // If IPC fails show up-to-date (graceful fallback)
+                showState('uptodate');
+            });
+        };
+
+        // Real-time events pushed from main process
         ipcRenderer.on('update-status', (event, info) => {
-            const overlay      = document.getElementById('update-overlay');
-            const title        = document.getElementById('update-popup-title');
-            const msg          = document.getElementById('update-banner-msg');
-            const installBtn   = document.getElementById('update-install-btn');
-            const laterBtn     = document.getElementById('update-later-btn');
-            const progressWrap = document.getElementById('update-progress-bar-wrap');
-            const progressBar  = document.getElementById('update-progress-bar');
-            if (info.state === 'downloading') {
-                title.innerText = '🔄 Downloading Update...';
-                const pct = info.percent != null ? info.percent : 0;
-                msg.innerText = `Version ${info.version || 'new'} is downloading — ${pct}% complete.`;
-                progressWrap.style.display = 'block';
-                progressBar.style.width = pct + '%';
-                installBtn.style.display = 'none';
-                laterBtn.style.display = 'none';
+            const overlay   = document.getElementById('update-overlay');
+            const actionBtn = document.getElementById('upd-action-btn');
+            const laterBtn  = document.getElementById('upd-later-btn');
+
+            // Make sure modal is visible
+            overlay.style.display = 'flex';
+
+            if (info.state === 'not-available') {
+                showState('uptodate');
+                actionBtn.style.display = 'none';
+                laterBtn.innerText = 'Close';
+
+            } else if (info.state === 'available') {
+                showState('available');
+                document.getElementById('upd-avail-ver').innerText =
+                    `Version ${info.version || ''} is ready to download`;
+                document.getElementById('upd-avail-notes').innerText =
+                    info.releaseNotes || 'Bug fixes and performance improvements.';
+                actionBtn.style.display = '';
+                actionBtn.innerText = '⬇ Download Now';
+                laterBtn.innerText = 'Later';
+                actionBtn.onclick = () => {
+                    ipcRenderer.invoke('start-download').catch(() => {});
+                    openUpdateModal('downloading');
+                    document.getElementById('upd-dl-ver').innerText =
+                        `Downloading version ${info.version || ''}…`;
+                };
+
+            } else if (info.state === 'downloading') {
+                showState('downloading');
+                const pct = info.percent != null ? Math.round(info.percent) : 0;
+                document.getElementById('upd-dl-bar').style.width = pct + '%';
+                document.getElementById('upd-dl-pct-label').innerText = pct + '%';
+                // Speed: bytesPerSecond comes from electron-updater
+                if (info.bytesPerSecond) {
+                    const kbps = (info.bytesPerSecond / 1024).toFixed(1);
+                    const transferred = info.transferred ? (info.transferred / (1024*1024)).toFixed(1) : '?';
+                    const total       = info.total       ? (info.total       / (1024*1024)).toFixed(1) : '?';
+                    document.getElementById('upd-dl-speed').innerText =
+                        `${transferred} MB / ${total} MB  •  ${kbps} KB/s`;
+                } else {
+                    document.getElementById('upd-dl-speed').innerText = 'Downloading…';
+                }
+                document.getElementById('upd-dl-ver').innerText =
+                    `Version ${info.version || ''}`;
+                actionBtn.style.display = 'none';
+                laterBtn.style.display  = 'none';   // can't cancel mid-download
+
             } else if (info.state === 'ready') {
-                title.innerText = '✅ Update Ready!';
-                msg.innerText = `Version ${info.version} downloaded. Click below to restart and install.`;
-                progressWrap.style.display = 'none';
-                installBtn.style.display = 'block';
-                laterBtn.style.display = 'block';
+                showState('ready');
+                document.getElementById('upd-ready-ver').innerText =
+                    `Version ${info.version || ''} downloaded. Restart to apply.`;
+                actionBtn.style.display = '';
+                actionBtn.innerText = '🔄 Restart & Install';
+                laterBtn.innerText  = 'Later';
+                laterBtn.style.display = '';
+                actionBtn.onclick = () => ipcRenderer.send('install-update-now');
+
+            } else if (info.state === 'error') {
+                showState('uptodate');   // reuse up-to-date panel with error text
+                document.querySelector('#upd-state-uptodate div:last-child').innerText =
+                    'Could not check for updates. Please try again later.';
+                actionBtn.style.display = 'none';
+                laterBtn.innerText = 'Close';
             }
-            overlay.classList.add('visible');
         });
-        window.installUpdate      = () => ipcRenderer.send('install-update-now');
-        window.dismissUpdateBanner = () => document.getElementById('update-overlay').classList.remove('visible');
+
+        window.installUpdate       = () => ipcRenderer.send('install-update-now');
+        window.dismissUpdateBanner = () => {
+            document.getElementById('update-overlay').style.display = 'none';
+        };
+
+        // Close on backdrop click
+        document.getElementById('update-overlay').addEventListener('click', function(e) {
+            if (e.target === this) dismissUpdateBanner();
+        });
     })();
 
     // ── Recent Activity ──

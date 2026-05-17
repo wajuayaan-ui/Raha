@@ -93,6 +93,8 @@
         .pfx-input { border-radius: 8px 0 0 8px !important; flex: 1; min-width: 0; border-left: none !important; }
 
         .field-error .ig-inp, .field-error .pfx-input { border-color: #d32f2f !important; background: #fff5f5 !important; }
+        /* BUG #9 FIX: also highlight the rep <select> when grp-rep has field-error */
+        .field-error select { border-color: #d32f2f !important; background: #fff5f5 !important; }
         .fwarn { font-size: 10px; color: #d32f2f; font-weight: 700; margin-top: 3px; display: none; }
         .field-error .fwarn { display: block; }
 
@@ -309,14 +311,15 @@
     <div class="ig" id="grp-amount">
         <label>قيمة العقد – رقم</label>
         <input type="text" class="ig-inp" id="in_amount" 
-               oninput="clearE('grp-amount');sync()">
+               oninput="clearE('grp-amount');autoFillAmountText();sync()">
         <div class="fwarn">⚠ قيمة العقد مطلوبة</div>
     </div>
 
     <div class="ig" id="grp-atext">
-        <label>قيمة العقد – تفصيل</label>
+        <label>قيمة العقد – تفصيل (يُملأ تلقائياً)</label>
         <input type="text" class="ig-inp" id="in_atext"
-                             oninput="clearE('grp-atext');sync()">
+               readonly placeholder="أدخل الرقم أعلاه ليظهر هنا تلقائياً"
+               style="background:#f8fafc;color:#102a43;cursor:default;">
         <div class="fwarn">⚠ التفصيل مطلوب</div>
     </div>
 
@@ -333,6 +336,8 @@
         <input type="text" id="in_rep_custom" placeholder="أدخل الاسم هنا"
                oninput="syncRep()"
                style="display:none;width:100%;margin-top:6px;padding:9px;border:1px solid #bcccdc;border-radius:6px;box-sizing:border-box;font-family:'Tahoma',Arial,sans-serif;font-size:13px;direction:rtl;text-align:right;">
+        <!-- BUG #9 FIX: added warning element so field-error CSS can display it -->
+        <div class="fwarn" id="warn-rep">⚠ اسم المندوب مطلوب</div>
     </div>
     <button class="dl-btn" id="dl-btn" onclick="downloadPDF()">💾 حفظ العقد (PDF)</button>
     <button class="dl-btn secondary" id="new-btn" onclick="newContract()">📄 عقد جديد</button>
@@ -602,6 +607,22 @@
                 clearE(r.gid);
             }
         }
+
+        // BUG #9 FIX: validate rep name — must have a selection, and if 'other'
+        // is chosen the custom text input must also be non-empty.
+        const repSel    = document.getElementById('in_rep').value;
+        const repCustom = document.getElementById('in_rep_custom').value.trim();
+        const repValid  = repSel !== '' && repSel !== '__other__'
+                          ? true
+                          : (repSel === '__other__' && repCustom.length > 0);
+        if (!repValid) {
+            document.getElementById('grp-rep').classList.add('field-error');
+            if (ok) document.getElementById('in_rep').focus();
+            ok = false;
+        } else {
+            clearE('grp-rep');
+        }
+
         return ok;
     }
 
@@ -622,7 +643,10 @@
         document.getElementById('controls').style.display    = 'none';
         document.getElementById('page-wrap').style.marginRight = '0';
 
-        await new Promise(r => setTimeout(r, 300));
+        // BUG #2 FIX: increased from 300ms to 500ms — matches all other modules.
+        // Ensures the sidebar is fully hidden before Electron captures the PDF,
+        // preventing the sidebar from bleeding into the output on slower machines.
+        await new Promise(r => setTimeout(r, 500));
 
         const result = await ipcRenderer.invoke('save-contract-pdf', base);
 
@@ -670,6 +694,8 @@
     function syncRep() {
         const sel    = document.getElementById('in_rep').value;
         const custom = document.getElementById('in_rep_custom');
+        // BUG #9 FIX: clear validation error as soon as user interacts with rep selector
+        clearE('grp-rep');
         if (sel === '__other__') {
             custom.style.display = 'block';
             const customName = custom.value.trim();
@@ -803,6 +829,65 @@
             const r = await ipcRenderer.invoke('ping-firebase');
             document.getElementById('offline-bar').style.display = r.success ? 'none' : 'block';
         } catch(e) { document.getElementById('offline-bar').style.display = 'block'; }
+    }
+
+    // ── Arabic number-to-words converter ──
+    function numberToArabicWords(n) {
+        n = Math.round(Number(n));
+        if (isNaN(n) || n < 0) return '';
+        if (n === 0) return 'صفر ريال سعودي';
+
+        const ones = ['','واحد','اثنان','ثلاثة','أربعة','خمسة','ستة','سبعة','ثمانية','تسعة',
+                       'عشرة','أحد عشر','اثنا عشر','ثلاثة عشر','أربعة عشر','خمسة عشر',
+                       'ستة عشر','سبعة عشر','ثمانية عشر','تسعة عشر'];
+        const tens  = ['','','عشرون','ثلاثون','أربعون','خمسون','ستون','سبعون','ثمانون','تسعون'];
+
+        function belowThousand(num) {
+            if (num === 0) return '';
+            if (num < 20)  return ones[num];
+            const t = Math.floor(num / 10);
+            const o = num % 10;
+            if (o === 0) return tens[t];
+            return ones[o] + ' و' + tens[t];
+        }
+
+        function belowMillion(num) {
+            if (num === 0) return '';
+            const h = Math.floor(num / 100);
+            const rest = num % 100;
+            const hundreds = ['','مائة','مئتان','ثلاثمائة','أربعمائة','خمسمائة','ستمائة','سبعمائة','ثمانمائة','تسعمائة'];
+            let word = hundreds[h] || '';
+            const below = belowThousand(rest);
+            if (word && below) word += ' و' + below;
+            else if (below)    word = below;
+            return word;
+        }
+
+        const billions  = Math.floor(n / 1_000_000_000);
+        const millions  = Math.floor((n % 1_000_000_000) / 1_000_000);
+        const thousands = Math.floor((n % 1_000_000) / 1_000);
+        const remainder = n % 1_000;
+
+        let parts = [];
+
+        if (billions)  parts.push(belowMillion(billions)  + (billions  === 1 ? ' مليار'     : billions  === 2 ? ' ملياران'    : ' مليار'));
+        if (millions)  parts.push(belowMillion(millions)  + (millions  === 1 ? ' مليون'     : millions  === 2 ? ' مليونان'    : ' مليون'));
+        if (thousands) parts.push(belowMillion(thousands) + (thousands === 1 ? ' ألف'       : thousands === 2 ? ' ألفان'      : thousands < 11 ? ' آلاف' : ' ألف'));
+        if (remainder) parts.push(belowMillion(remainder));
+
+        return parts.join(' و') + ' ريال ';
+    }
+
+    function autoFillAmountText() {
+        const raw = document.getElementById('in_amount').value.replace(/,/g, '').trim();
+        const el  = document.getElementById('in_atext');
+        if (raw === '' || isNaN(Number(raw))) {
+            el.value = '';
+        } else {
+            el.value = numberToArabicWords(Number(raw));
+            clearE('grp-atext');
+        }
+        sync();
     }
 
     loadLogo();

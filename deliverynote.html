@@ -538,7 +538,36 @@
         <div class="total-line" style="color:var(--danger)" id="disc-row"><div class="total-lbl" id="lbl-disc-line">Discount (0%)</div><div class="total-val" id="out_disc_val">0.00</div></div>
         <div class="total-line"><div class="total-lbl grand-total" id="lbl-grand">Total Inc. VAT (SR)</div><div class="total-val grand-total" id="out_grand">0.00</div></div>
     </div>
-    <div style="clear:both;"></div>
+
+    <!-- TOTAL QTY ROW — sits flush under the table, aligned to QTY column -->
+    <div id="total-qty-wrap" style="display:block; width:100%; margin-top:6px;">
+        <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
+            <tr>
+                <!-- mirror table column widths: S/N 35 | Brand 20% | Code 20% | Img 65 | Desc 30% | Qty 45 | price-col 70 | total-col 80 -->
+                <td width="35px"></td>
+                <td width="20%"></td>
+                <td width="20%"></td>
+                <td width="65px"></td>
+                <td width="30%" style="text-align:right; padding:6px 8px; font-size:11px; font-weight:700; color:#627d98;">
+                    <span id="lbl-total-qty">Total QTY</span>
+                </td>
+                <td width="45px" style="padding:4px 4px;">
+                    <div id="out_total_qty" style="
+                        background:#102a43;
+                        color:#fff;
+                        font-size:13px;
+                        font-weight:900;
+                        text-align:center;
+                        padding:5px 4px;
+                        border-radius:8px;
+                        min-width:36px;
+                    ">0</div>
+                </td>
+                <td width="70px" class="price-col"></td>
+                <td width="80px" class="total-col"></td>
+            </tr>
+        </table>
+    </div>
 
     <!-- SIGNATURE -->
     <div class="terms-section" id="terms-section">
@@ -723,6 +752,7 @@
         document.getElementById('lbl-grand').innerText    = t.grand;
 
         document.getElementById('terms-title').innerText    = currentLang === 'ar' ? 'توقيع العميل :' : 'Customer Signature :';
+        document.getElementById('lbl-total-qty').innerText  = isAr ? 'إجمالي الكمية' : 'Total QTY';
 
         document.getElementById('terms-section').style.direction = isAr ? 'rtl' : 'ltr';
         document.getElementById('terms-section').style.textAlign = isAr ? 'right' : 'left';
@@ -951,6 +981,15 @@
 
         document.getElementById('items-output-en').innerHTML = rowsHtml;
         document.getElementById('items-output-ar').innerHTML = rowsHtml;
+
+        // ── Total QTY ──
+        let totalQty = 0;
+        editors.forEach(ed => { totalQty += parseFloat(ed.querySelector('.r-qty').value) || 0; });
+        const totalQtyEl = document.getElementById('out_total_qty');
+        if (totalQtyEl) totalQtyEl.innerText = Math.round(totalQty);
+
+        const qtyWrap = document.getElementById('total-qty-wrap');
+        if (qtyWrap) qtyWrap.style.display = 'block';
 
         const discAmount  = subtotal * (discPerc / 100);
         const discounted  = subtotal - discAmount;
